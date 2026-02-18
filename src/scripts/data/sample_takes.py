@@ -1,13 +1,13 @@
 """
-Sample a fraction of takes from an existing split.json.
+Sample a fraction of takes from an existing splits.json.
 
-Reads split.json from --root (train/val/test UIDs), randomly samples the given
+Reads splits.json from --root (train/val/test UIDs), randomly samples the given
 percentages of each split, and saves the sampled UIDs to a JSON file in the same directory.
 
 Usage:
     python sample_takes.py --root ../output_dir_cooking --train_pct 0.1 --val_pct 0.2 --test_pct 0.2 --seed 42
 
-NOTE: This script assumes that split.json exists in --root directory.
+NOTE: This script assumes that splits.json exists in --root directory.
 """
 
 import argparse
@@ -18,9 +18,9 @@ import random
 
 def load_split(root: Path) -> dict:
     """Load split.json from root. Returns dict with 'train', 'val', 'test' keys."""
-    path = root / "split.json"
+    path = root / "splits.json"
     if not path.exists():
-        raise FileNotFoundError(f"split.json not found: {path}")
+        raise FileNotFoundError(f"splits.json not found: {path}")
     with open(path, "r") as f:
         return json.load(f)
 
