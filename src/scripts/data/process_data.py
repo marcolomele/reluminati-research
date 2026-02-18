@@ -212,17 +212,13 @@ def extract_frames_from_video(
             print(f"Warning: {len(frame_indices) - len(valid_indices)} frame indices out of bounds for {video_path}")
         
         frames = vr.get_batch(valid_indices).asnumpy()
-        scale = 2 if is_aria else 4
         
         output_dir.mkdir(parents=True, exist_ok=True)
         
         for frame, idx in zip(frames, valid_indices):
             # Convert RGB to BGR for OpenCV
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            
-            H, W = frame_bgr.shape[:2]
-            frame_resized = cv2.resize(frame_bgr, (W // scale, H // scale))
-            cv2.imwrite(str(output_dir / f"{idx}.jpg"), frame_resized)
+            cv2.imwrite(str(output_dir / f"{idx}.jpg"), frame_bgr)
         
         print(f"Extracted {len(valid_indices)} frames")
         return True
