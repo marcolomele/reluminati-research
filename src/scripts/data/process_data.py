@@ -102,14 +102,34 @@ def parse_args():
         default="../annotations/relation_annotations",
         help="Root directory for relation annotations"
     )
+    parser.add_argument(
+        "--split-file",
+        type=str,
+        default=None,
+        help="Path to split file (sampled_split.json). If not provided, uses default scenario-based splits"
+    )
     return parser.parse_args()
 
 
 SCENARIOS = ["cooking", "health", "music", "soccer", "basketball", "dance", "bike repair", "rock climbing"]
 
 
-def load_split_uids(scenario: str = 'all') -> Dict[str, List[str]]:
+def load_split_uids(scenario: str = 'all', split_file_path: Optional[str] = None) -> Dict[str, List[str]]:
     """Load UIDs from split file for a single scenario."""
+    if split_file_path:
+        split_file = Path(split_file_path)
+        if not split_file.exists():
+            raise FileNotFoundError(f"Split file not found: {split_file}")
+        
+        with open(split_file, 'r') as f:
+            splits = json.load(f)
+        
+        print(f"Loaded splits from {split_file}:")
+        for split_name, uids in splits.items():
+            print(f"  {split_name}: {len(uids)} UIDs")
+        
+        return splits
+    
     if scenario == 'all':
         return load_all_splits_uids()
     
@@ -343,7 +363,9 @@ def main():
     
     # Load splits (single scenario or entire dataset)
     try:
-        if args.scenario:
+        if args.split_file:
+            splits = load_split_uids(split_file_path=args.split_file)
+        elif args.scenario:
             splits = load_split_uids(args.scenario)
         else:
             splits = load_split_uids('all')
