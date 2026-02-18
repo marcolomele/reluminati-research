@@ -74,7 +74,7 @@ def main():
         "--output",
         type=str,
         default="sampled_split.json",
-        help="Output filename in --root (default: sampled_split.json)",
+        help="Output path (absolute or relative to --root) (default: sampled_split.json)",
     )
     args = parser.parse_args()
 
@@ -91,7 +91,9 @@ def main():
         args.seed,
     )
 
-    out_path = root / args.output
+    out_path = Path(args.output)
+    if not out_path.is_absolute():
+        out_path = root / args.output
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(sampled, f, indent=2)
