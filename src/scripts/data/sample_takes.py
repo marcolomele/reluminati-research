@@ -22,7 +22,20 @@ def load_split(root: Path) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"splits.json not found: {path}")
     with open(path, "r") as f:
-        return json.load(f)
+        data = json.load(f)
+    
+    # Handle format: {"take_uid_to_split": {"uid": "train", ...}}
+    if "take_uid_to_split" in data:
+        uid_to_split = data["take_uid_to_split"]
+        # Invert to {"train": [uids], "val": [uids], "test": [uids]}
+        result = {"train": [], "val": [], "test": []}
+        for uid, split_name in uid_to_split.items():
+            if split_name in result:
+                result[split_name].append(uid)
+        return result
+    
+    # Handle direct format: {"train": [uids], "val": [uids], "test": [uids]}
+    return data
 
 
 def sample_uids(uids: list, ratio: float, seed: int) -> list:
