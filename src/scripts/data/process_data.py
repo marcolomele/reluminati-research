@@ -248,12 +248,14 @@ def process_take(
     print(f"Take name: {take_name}")
     
     # Locate videos in source directory
-    takes_dir = source_dir / "takes" / take_name / "frame_aligned_videos"
+    takes_dir = source_dir / "takes" / take_name / "frame_aligned_videos" / "downscaled" / "448"
     if not takes_dir.exists():
-        takes_dir = source_dir / "takes" / take_name
+        takes_dir = source_dir / "takes" / take_name / "frame_aligned_videos"
         if not takes_dir.exists():
-            print(f"Error: Take not found at {source_dir / 'takes' / take_name}")
-            return False
+            takes_dir = source_dir / "takes" / take_name
+            if not takes_dir.exists():
+                print(f"Error: Take not found at {source_dir / 'takes' / take_name}")
+                return False
     
     # Get cameras and frames
     camera_frames = get_all_cameras_from_annotation(annotation)
