@@ -1,19 +1,18 @@
-#!/usr/bin/env python3
 """
-Download and process EgoExo4D video takes for correspondence task.
-
-This script downloads videos, extracts annotated frames, and organizes them
-for baseline model training.
+This script reads raw takes from a source directory (e.g. on a research cluster),
+extracts annotated frames, and organizes them for baseline model training.
 
 Usage:
-    python download_and_process_data.py --scenario cooking
-    python download_and_process_data.py --scenario health
+    python process_data.py --source-dir /path/to/egoexo/root
+    python process_data.py --scenario cooking --source-dir /path/to/egoexo/root
+    python process_data.py --scenario health --source-dir /path/to/egoexo/root
+
+NOTE: check if raw files downloaded by Garcia are in correct format. 
+TODO: add other scenarios and all option in --scenario argument.
 """
 
 import json
 import argparse
-import subprocess
-import shutil
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 from datetime import datetime, timedelta
@@ -82,14 +81,20 @@ def process_masks(object_masks: Dict[str, Any]):
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Download and process EgoExo4D data for correspondence task"
+        description="Locate and process EgoExo4D data for correspondence task"
     )
     parser.add_argument(
         "--scenario",
         type=str,
+        default=None,
+        choices=["cooking", "health", "music", "soccer", "basketball", "dance", "bike repair", "rock climbing"],
+        help="Scenario to process. If not provided, process the entire dataset (all scenarios)"
+    )
+    parser.add_argument(
+        "--source-dir",
+        type=str,
         required=True,
-        choices=["cooking", "health"],
-        help="Scenario to process (cooking or health)"
+        help="Root directory where raw takes already exist (contains takes/<take_name>/frame_aligned_videos/...)"
     )
     parser.add_argument(
         "--annotation-root",
@@ -100,8 +105,14 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_split_uids(scenario: str) -> Dict[str, List[str]]:
-    """Load UIDs from split_{scenario}.json file."""
+SCENARIOS = ["cooking", "health", "music", "soccer", "basketball", "dance", "bike repair", "rock climbing"]
+
+
+def load_split_uids(scenario: str = 'all') -> Dict[str, List[str]]:
+    """Load UIDs from split file for a single scenario."""
+    if scenario == 'all':
+        return load_all_splits_uids()
+    
     split_file = Path(f"../output_dir_{scenario}/split.json")
     
     if not split_file.exists():
@@ -115,6 +126,27 @@ def load_split_uids(scenario: str) -> Dict[str, List[str]]:
         print(f"  {split_name}: {len(uids)} UIDs")
     
     return splits
+
+
+def load_all_splits_uids() -> Dict[str, List[str]]:
+    """Load and merge UIDs from split files for all scenarios (entire dataset)."""
+    merged: Dict[str, List[str]] = {}
+    for scenario in SCENARIOS:
+        split_file = Path(f"../output_dir_{scenario}/split.json")
+        if not split_file.exists():
+            print(f"Warning: {split_file} not found, skipping scenario {scenario}")
+            continue
+        with open(split_file, 'r') as f:
+            splits = json.load(f)
+        for split_name, uids in splits.items():
+            merged.setdefault(split_name, [])
+            merged[split_name] = list(set(merged[split_name]) | set(uids))
+    if not merged:
+        raise FileNotFoundError("No split files found for any scenario (cooking, health)")
+    print("Loaded splits for entire dataset (all scenarios):")
+    for split_name, uids in merged.items():
+        print(f"  {split_name}: {len(uids)} UIDs")
+    return merged
 
 
 def find_annotation_for_uid(uid: str, annotation_root: str) -> Optional[Tuple[Dict[str, Any], str]]:
@@ -142,35 +174,6 @@ def find_annotation_for_uid(uid: str, annotation_root: str) -> Optional[Tuple[Di
             print(f"Error reading {filename}: {e}")
     
     return None
-
-
-def download_take(uid: str, output_dir: str) -> bool:
-    """Download take using egoexo CLI with visible progress bar."""
-    cmd = [
-        "egoexo",
-        "-o", output_dir,
-        "--parts", 
-        #"downscaled_takes/448",
-        "takes",
-        "--yes",
-        "--uids", uid
-    ]
-    
-    print(f"\n{'─'*60}")
-    print(f"Downloading take: {uid}")
-    print(f"{'─'*60}")
-    
-    try:
-        # Don't capture output so progress bar is visible
-        subprocess.run(cmd, check=True)
-        print(f"Download complete")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"Download failed: {e}")
-        return False
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return False
 
 
 def get_all_cameras_from_annotation(annotation: Dict[str, Any]) -> Dict[str, List[int]]:
@@ -228,13 +231,13 @@ def extract_frames_from_video(
         print(f"Error extracting frames from {video_path}: {e}")
         return False
 
-
 def process_take(
     uid: str,
     annotation: Dict[str, Any],
+    source_dir: Path,
     output_dir: Path
 ) -> bool:
-    """Process a single take: download, extract frames, create annotation.json."""
+    """Process a single take: locate videos in source_dir, extract frames, create annotation.json."""
     take_start = datetime.now()
     
     print(f"\n{'='*80}")
@@ -248,19 +251,12 @@ def process_take(
     
     print(f"Take name: {take_name}")
     
-    # Download
-    if not download_take(uid, str(output_dir)):
-        return False
-    
-    # Find downloaded videos
-    takes_dir = output_dir / "takes" / take_name / "frame_aligned_videos" # / "downscaled" / "448"
-    
+    # Locate videos in source directory
+    takes_dir = source_dir / "takes" / take_name / "frame_aligned_videos"
     if not takes_dir.exists():
-        print(f"Error: Downloaded videos not found at {takes_dir}")
-        # Try alternative path without frame_aligned_videos
-        takes_dir = output_dir / "takes" / take_name #/ "downscaled" / "448"
+        takes_dir = source_dir / "takes" / take_name
         if not takes_dir.exists():
-            print(f"Videos not found at expected locations")
+            print(f"Error: Take not found at {source_dir / 'takes' / take_name}")
             return False
     
     # Get cameras and frames
@@ -323,12 +319,6 @@ def process_take(
     
     print(f"Created annotation file: {annotation_path}")
     
-    # Cleanup: Delete takes directory
-    takes_root = output_dir / "takes"
-    if takes_root.exists():
-        print(f"Cleaning up: Removing {takes_root}")
-        shutil.rmtree(takes_root)
-    
     duration = (datetime.now() - take_start).total_seconds()
     print(f"\nTake processed in {format_duration(duration)}")
     
@@ -340,24 +330,34 @@ def main():
     script_start = datetime.now()
     args = parse_args()
     
+    source_dir = Path(args.source_dir)
+    if not source_dir.is_dir():
+        print(f"Error: Source directory not found: {source_dir}")
+        return 1
+
+    scenario_label = args.scenario if args.scenario else "all"
     print(f"\n{'='*80}")
-    print(f"EgoExo4D Data Download and Processing")
-    print(f"Scenario: {args.scenario}")
+    print(f"EgoExo4D Data Locate and Process")
+    print(f"Scenario: {scenario_label}")
+    print(f"Source dir: {source_dir}")
     print(f"Started: {script_start.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*80}\n")
     
-    # Load splits
+    # Load splits (single scenario or entire dataset)
     try:
-        splits = load_split_uids(args.scenario)
+        if args.scenario:
+            splits = load_split_uids(args.scenario)
+        else:
+            splits = load_split_uids('all')
     except Exception as e:
         print(f"Error loading splits: {e}")
         return 1
     
-    # Flatten UIDs
-    all_uids = [uid for uids in splits.values() for uid in uids]
+    # Flatten UIDs (preserve deduplication for "all" case where UIDs can appear in multiple scenarios)
+    all_uids = list(dict.fromkeys(uid for uids in splits.values() for uid in uids))
     print(f"\nTotal UIDs to process: {len(all_uids)}\n")
     
-    output_dir = Path(f"../output_dir_{args.scenario}")
+    output_dir = Path(f"../output_dir_{scenario_label}")
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # Process UIDs
@@ -383,7 +383,7 @@ def main():
         print(f"Found in {split_name} split")
         
         # Process
-        if process_take(uid, annotation, output_dir):
+        if process_take(uid, annotation, source_dir, output_dir):
             success_count += 1
             uid_duration = (datetime.now() - uid_start).total_seconds()
             uid_times.append(uid_duration)
