@@ -170,7 +170,7 @@ def load_all_splits_uids() -> Dict[str, List[str]]:
 
 
 def find_annotation_for_uid(uid: str, annotation_root: str) -> Optional[Tuple[Dict[str, Any], str]]:
-    """Search for annotation by take_name across all relation annotation files."""
+    """Search for annotation by UID (ann_id key) across all relation annotation files."""
     annotation_files = [
         ("relations_train.json", "train"),
         ("relations_val.json", "val"),
@@ -188,10 +188,10 @@ def find_annotation_for_uid(uid: str, annotation_root: str) -> Optional[Tuple[Di
             with open(file_path, 'r') as f:
                 data = json.load(f)
             
-            # Search for annotation where take_name matches the uid
-            for ann_id, annotation in data.get('annotations', {}).items():
-                if annotation.get('take_name') == uid:
-                    return annotation, split_name
+            # Search for annotation by UID (dictionary key)
+            annotations = data.get('annotations', {})
+            if uid in annotations:
+                return annotations[uid], split_name
         except Exception as e:
             print(f"Error reading {filename}: {e}")
     
