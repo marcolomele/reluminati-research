@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# specific conversion scripts
+src/scripts/data/convert_names_to_uids.py
+src/scripts/data/rename_dirs_to_uids.py
+
+
 # Distribution / packaging
 .Python
 build/

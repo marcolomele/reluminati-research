@@ -1,8 +1,8 @@
 """
 Sample takes that have relation annotations from relations_*.json files.
 
-Extracts take_name from each annotation, groups by split, samples the given
-percentages, and saves sampled take names to JSON.
+Extracts UIDs (ann_id keys) from each annotation, groups by split, samples the given
+percentages, and saves sampled UIDs to JSON.
 
 Usage:
     python sample_annotated_takes.py --root /path/to/annotations --train_pct 0.1 --val_pct 0.2 --test_pct 0.2 --output sampled.json
@@ -15,7 +15,7 @@ import random
 
 
 def load_annotated_takes(root: Path) -> dict:
-    """Load relations files and extract take_name from annotations."""
+    """Load relations files and extract UIDs (ann_id keys) from annotations."""
     splits = {"train": [], "val": [], "test": []}
     
     for split_name in ["train", "val", "test"]:
@@ -27,21 +27,19 @@ def load_annotated_takes(root: Path) -> dict:
         with open(file_path, 'r') as f:
             data = json.load(f)
         
-        # Extract take_name from each annotation
-        take_names = set()
+        # Extract UIDs (ann_id keys) from annotations
+        uids = []
         for ann_id, annotation in data.get('annotations', {}).items():
-            take_name = annotation.get('take_name')
-            if take_name:
-                take_names.add(take_name)
+            uids.append(ann_id)
         
-        splits[split_name] = sorted(list(take_names))
+        splits[split_name] = sorted(uids)
         print(f"Loaded {len(splits[split_name])} annotated takes from {split_name}")
     
     return splits
 
 
 def sample_takes(takes: list, ratio: float, seed: int) -> list:
-    """Randomly sample a fraction of takes."""
+    """Randomly sample a fraction of UIDs."""
     if ratio <= 0:
         return []
     if ratio >= 1.0:
@@ -66,26 +64,26 @@ def main():
         "--train_pct",
         type=float,
         default=0.1,
-        help="Fraction of train takes to sample (default: 0.1)",
+        help="Fraction of train UIDs to sample (default: 0.1)",
     )
     parser.add_argument(
         "--val_pct",
         type=float,
         default=0.2,
-        help="Fraction of val takes to sample (default: 0.2)",
+        help="Fraction of val UIDs to sample (default: 0.2)",
     )
     parser.add_argument(
         "--test_pct",
         type=float,
         default=0.2,
-        help="Fraction of test takes to sample (default: 0.2)",
+        help="Fraction of test UIDs to sample (default: 0.2)",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     parser.add_argument(
         "--output",
         type=str,
         required=True,
-        help="Output path for sampled takes JSON",
+        help="Output path for sampled UIDs JSON",
     )
     args = parser.parse_args()
 
@@ -93,7 +91,7 @@ def main():
     if not root.is_dir():
         raise SystemExit(f"Not a directory: {root}")
 
-    # Load all annotated takes
+    # Load all annotated UIDs
     all_splits = load_annotated_takes(root)
     
     # Sample from each split
