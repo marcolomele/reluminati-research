@@ -1,0 +1,18 @@
+{
+    "root-data-directory": "/data/video_datasets/3321908/output_dir_all/",
+
+    "vlm-api-key": "...",
+    "huggingface-api-key": "...",
+
+    "vlm-model": "qwen3-vl:235b-cloud",
+    "huggingface-model": "...",
+
+    "prompt-exp-a": "...",
+    "prompt-exp-b": "...",
+    "prompt-exp-c": "...",
+
+    "split": "train",
+    "direction": "ego-exo",
+    "subset-run-percentage": 0.01,
+    "subset-seed": 42
+}
