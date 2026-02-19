@@ -4,6 +4,7 @@ import numpy as np
 import json
 
 from collections import defaultdict
+from pathlib import Path
 import argparse
 
 def make_pairs(data_dir, split='train', setting='egoexo'):
@@ -14,11 +15,30 @@ def make_pairs(data_dir, split='train', setting='egoexo'):
     split_takes = splits[split]
 
     pairs = []
+    skipped = 0
+    
     for take in split_takes:
-
-        # take = take[0]
-        with open(f'{data_dir}/{take}/annotation.json', 'r') as fp:
-            annotation = json.load(fp) 
+        # Check if take directory exists
+        take_dir = Path(data_dir) / take
+        annotation_file = take_dir / 'annotation.json'
+        
+        if not take_dir.exists():
+            print(f"Warning: Directory not found for take {take}, skipping...")
+            skipped += 1
+            continue
+        
+        if not annotation_file.exists():
+            print(f"Warning: annotation.json not found for take {take}, skipping...")
+            skipped += 1
+            continue
+        
+        try:
+            with open(annotation_file, 'r') as fp:
+                annotation = json.load(fp)
+        except Exception as e:
+            print(f"Warning: Failed to read annotation for take {take}: {e}, skipping...")
+            skipped += 1
+            continue
 
         for obj_name in annotation['masks']:
 
@@ -51,7 +71,7 @@ def make_pairs(data_dir, split='train', setting='egoexo'):
 
                     pairs.append( (aria_rgb_path, aria_mask_path, cam_rgb_path, cam_mask_path) )
 
-    print(f'{split} - pairs: ', len(pairs))
+    print(f'{split} - pairs: {len(pairs)}, skipped: {skipped}')
     with open(f'{data_dir}/{split}_{setting}_pairs.json', 'w') as fp:
         json.dump(pairs, fp)
 
