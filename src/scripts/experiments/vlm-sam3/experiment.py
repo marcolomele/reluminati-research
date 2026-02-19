@@ -16,6 +16,7 @@ and process_data.py). Current approach decodes COCO RLE from annotation.json at
 runtime for each pair.
 * List of API keys for limits + sleep between requests.
 * add congif arguments to output dataframe columns
+* every X amount of frames, save to local the predicted masks for each of the three experiments to be able to compare qualitatively the model
 """
 
 import argparse
