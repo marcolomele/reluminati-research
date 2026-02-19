@@ -33,10 +33,9 @@ def convert_to_uids(sampled_path: Path, relations_root: Path) -> dict:
         
         for ann_id, annotation in data.get('annotations', {}).items():
             take_name = annotation.get('take_name')
-            take_uid = annotation.get('take_uid')
             
-            if take_name and take_uid:
-                take_name_to_uid[take_name] = take_uid
+            if take_name:
+                take_name_to_uid[take_name] = ann_id
     
     # Convert sampled take_names to UIDs
     result = {}
