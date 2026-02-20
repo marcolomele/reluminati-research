@@ -414,7 +414,7 @@ def main():
 
         logger.info(
             "[%d/%d] %s | %s | frame %s",
-            i + 1, n, uid[:8], meta["object_name"], meta["frame"],
+            i + 1, n, uid, meta["object_name"], meta["frame"],
         )
 
         if uid not in ann_cache:

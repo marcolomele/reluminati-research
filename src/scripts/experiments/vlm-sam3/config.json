@@ -1,15 +1,15 @@
 {
     "root-data-directory": "/data/video_datasets/3321908/output_dir_all/",
 
-    "vlm-api-key": "...",
-    "huggingface-api-key": "...",
+    "vlm-api-key": "5e3528983b8e412d9f58687d49a41b11.3LUyjZTbzgbBdrUkqD47y8wh",
+    "huggingface-api-key": "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",
 
     "vlm-model": "qwen3-vl:235b-cloud",
-    "huggingface-model": "...",
+    "huggingface-model": "facebook/sam3",
 
-    "prompt-exp-a": "...",
-    "prompt-exp-b": "...",
-    "prompt-exp-c": "...",
+    "prompt-exp-a": "Image = masked image with artificial red overlay. Identify the object under the red overlay and describe its true color. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text.",
+    "prompt-exp-b": "First image = original image with true colors. Second image = masked image with artificial red overlay. Use second image to know which object is selected. Use first image to determine the true color. Do NOT say red unless the object is actually red in the first image. Answer with: {color} {object_name}. No extra text.",
+    "prompt-exp-c": "First image = source image with true colors. Second image = source image with artificial red overlay showing selected object. Third image = destination image from different viewpoint. Use second image to identify which object is selected. Use first and third images to understand spatial context and true appearance. Locate the same object in the third image. Do NOT say red unless the object is actually red in first or third image. Answer with: {color} {object_name}. No extra text.",
 
     "split": "train",
     "direction": "ego-exo",
