@@ -3,6 +3,8 @@ eva-decord==0.6.1
 lzstring
 numpy
 pandas
+matplotlib
+seaborn
 torch
 Pillow
 pycocotools
@@ -11,3 +13,4 @@ scikit-image
 ollama
 huggingface_hub
 transformers
+dotenv
