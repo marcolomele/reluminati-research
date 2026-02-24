@@ -2,18 +2,26 @@
 This script reads raw takes from a source directory (e.g. on a research cluster),
 extracts annotated frames, and organizes them for baseline model training.
 
+Source directory structure:
+    source-dir/
+        takes/<take_name>/frame_aligned_videos/...
+        annotations/splits.json                    # {uid: split_name, ...}
+        annotations/relations_train.json
+        annotations/relations_val.json
+        annotations/relations_test.json
+
 Usage:
     python process_data.py --source-dir /path/to/egoexo/root
     python process_data.py --scenario cooking --source-dir /path/to/egoexo/root
-    python process_data.py --scenario health --source-dir /path/to/egoexo/root
-
-NOTE: check if raw files downloaded by Garcia are in correct format. 
-TODO: add other scenarios and all option in --scenario argument.
+    python process_data.py --keyword basketball --source-dir /path/to/egoexo/root
+    python process_data.py --keyword cooking --limit 10 --source-dir /path/to/egoexo/root
 """
 
 import json
 import argparse
+import random
 from pathlib import Path
+from collections import defaultdict
 from typing import Dict, List, Tuple, Optional, Any
 from datetime import datetime, timedelta
 import cv2
@@ -87,115 +95,72 @@ def parse_args():
         "--scenario",
         type=str,
         default=None,
-        choices=["cooking", "health", "music", "soccer", "basketball", "dance", "bike repair", "rock climbing"],
-        help="Scenario to process. If not provided, process the entire dataset (all scenarios)"
+        help="Scenario category to filter (e.g. 'cooking', 'basketball'). Case-insensitive substring match on scenario field."
     )
     parser.add_argument(
         "--source-dir",
         type=str,
         required=True,
-        help="Root directory where raw takes already exist (contains takes/<take_name>/frame_aligned_videos/...)"
+        help="Root directory containing takes/ and annotations/ folders"
     )
     parser.add_argument(
-        "--annotation-root",
-        type=str,
-        default="../annotations/relation_annotations",
-        help="Root directory for relation annotations"
-    )
-    parser.add_argument(
-        "--split-file",
+        "--keyword",
         type=str,
         default=None,
-        help="Path to split file (sampled_split.json). If not provided, uses default scenario-based splits"
+        help="Filter takes by keyword contained in the take folder name"
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Max number of takes to process (randomly sampled from keyword-matched takes)"
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Output directory for processed data (default: ../output_dir_{scenario})"
     )
     return parser.parse_args()
 
 
-SCENARIOS = ["cooking", "health", "music", "soccer", "basketball", "dance", "bike repair", "rock climbing"]
-
-
-def load_split_uids(scenario: str = 'all', split_file_path: Optional[str] = None) -> Dict[str, List[str]]:
-    """Load UIDs from split file for a single scenario."""
-    if split_file_path:
-        split_file = Path(split_file_path)
-        if not split_file.exists():
-            raise FileNotFoundError(f"Split file not found: {split_file}")
-        
-        with open(split_file, 'r') as f:
-            splits = json.load(f)
-        
-        print(f"Loaded splits from {split_file}:")
-        for split_name, uids in splits.items():
-            print(f"  {split_name}: {len(uids)} UIDs")
-        
-        return splits
-    
-    if scenario == 'all':
-        return load_all_splits_uids()
-    
-    split_file = Path(f"../output_dir_{scenario}/split.json")
-    
+def load_split_uids(source_dir: Path) -> Dict[str, List[str]]:
+    """Load UIDs from source_dir/annotations/splits.json (uid -> split mapping)."""
+    split_file = source_dir / "annotations" / "splits.json"
     if not split_file.exists():
         raise FileNotFoundError(f"Split file not found: {split_file}")
-    
+
     with open(split_file, 'r') as f:
-        splits = json.load(f)
-    
-    print(f"Loaded splits for {scenario}:")
+        data = json.load(f)
+    uid_to_split = data.get("take_uid_to_split", data)
+
+    splits: Dict[str, List[str]] = {}
+    for uid, split_name in uid_to_split.items():
+        splits.setdefault(split_name, []).append(uid)
+
+    print(f"Loaded splits from {split_file}:")
     for split_name, uids in splits.items():
         print(f"  {split_name}: {len(uids)} UIDs")
-    
     return splits
 
 
-def load_all_splits_uids() -> Dict[str, List[str]]:
-    """Load and merge UIDs from split files for all scenarios (entire dataset)."""
-    merged: Dict[str, List[str]] = {}
-    for scenario in SCENARIOS:
-        split_file = Path(f"../output_dir_{scenario}/split.json")
-        if not split_file.exists():
-            print(f"Warning: {split_file} not found, skipping scenario {scenario}")
-            continue
-        with open(split_file, 'r') as f:
-            splits = json.load(f)
-        for split_name, uids in splits.items():
-            merged.setdefault(split_name, [])
-            merged[split_name] = list(set(merged[split_name]) | set(uids))
-    if not merged:
-        raise FileNotFoundError("No split files found for any scenario (cooking, health)")
-    print("Loaded splits for entire dataset (all scenarios):")
-    for split_name, uids in merged.items():
-        print(f"  {split_name}: {len(uids)} UIDs")
-    return merged
-
-
-def find_annotation_for_uid(uid: str, annotation_root: str) -> Optional[Tuple[Dict[str, Any], str]]:
-    """Search for annotation by UID (ann_id key) across all relation annotation files."""
-    annotation_files = [
-        ("relations_train.json", "train"),
-        ("relations_val.json", "val"),
-        ("relations_test.json", "test")
-    ]
-    
-    for filename, split_name in annotation_files:
-        file_path = Path(annotation_root) / filename
-        
+def load_annotations(source_dir: Path) -> Dict[str, Tuple[Dict[str, Any], str]]:
+    """Load all annotations from source_dir/annotations/relations_{split}.json."""
+    all_annotations = {}
+    annotation_dir = source_dir / "annotations"
+    for split_name in ("train", "val", "test"):
+        file_path = annotation_dir / f"relations_{split_name}.json"
         if not file_path.exists():
             print(f"Warning: {file_path} not found, skipping...")
             continue
-        
         try:
             with open(file_path, 'r') as f:
                 data = json.load(f)
-            
-            # Search for annotation by UID (dictionary key)
-            annotations = data.get('annotations', {})
-            if uid in annotations:
-                return annotations[uid], split_name
+            for uid, ann in data.get('annotations', {}).items():
+                all_annotations[uid] = (ann, split_name)
         except Exception as e:
-            print(f"Error reading {filename}: {e}")
-    
-    return None
+            print(f"Error reading {file_path.name}: {e}")
+    return all_annotations
 
 
 def get_all_cameras_from_annotation(annotation: Dict[str, Any]) -> Dict[str, List[int]]:
@@ -360,27 +325,68 @@ def main():
     print(f"EgoExo4D Data Locate and Process")
     print(f"Scenario: {scenario_label}")
     print(f"Source dir: {source_dir}")
+    if args.keyword:
+        print(f"Keyword filter: {args.keyword}")
+    if args.limit:
+        print(f"Limit: {args.limit}")
     print(f"Started: {script_start.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*80}\n")
     
-    # Load splits (single scenario or entire dataset)
+    # Load splits (informational only -- not used for UID selection)
     try:
-        if args.split_file:
-            splits = load_split_uids(split_file_path=args.split_file)
-        elif args.scenario:
-            splits = load_split_uids(args.scenario)
-        else:
-            splits = load_split_uids('all')
+        splits = load_split_uids(source_dir)
     except Exception as e:
-        print(f"Error loading splits: {e}")
+        print(f"Warning: Could not load splits.json: {e}")
+        splits = {}
+    
+    annotations = load_annotations(source_dir)
+    if not annotations:
+        print("Error: No annotations loaded. Check that relations_*.json files exist.")
         return 1
     
-    # Flatten UIDs (preserve deduplication for "all" case where UIDs can appear in multiple scenarios)
-    all_uids = list(dict.fromkeys(uid for uids in splits.values() for uid in uids))
+    # Build UID list from annotations (only UIDs with actual annotation data)
+    all_uids = list(annotations.keys())
+    print(f"\nLoaded {len(all_uids)} annotated UIDs")
+    
+    # Filter by scenario (case-insensitive substring match)
+    if args.scenario:
+        kw = args.scenario.lower()
+        all_uids = [uid for uid in all_uids if kw in annotations[uid][0].get('scenario', '').lower()]
+        print(f"Scenario filter '{args.scenario}': {len(all_uids)} matching UIDs")
+    
+    # Filter by keyword on take_name (case-insensitive substring match)
+    if args.keyword:
+        kw = args.keyword.lower()
+        matching_uids = [uid for uid in all_uids if kw in annotations[uid][0].get('take_name', '').lower()]
+        print(f"Keyword '{args.keyword}': {len(matching_uids)} matching UIDs")
+        if args.limit and len(matching_uids) > args.limit:
+            by_split: Dict[str, List[str]] = defaultdict(list)
+            for uid in matching_uids:
+                by_split[annotations[uid][1]].append(uid)
+            total = len(matching_uids)
+            target_per_split = {s: max(0, round(args.limit * len(uids) / total)) for s, uids in by_split.items()}
+            n = sum(target_per_split.values())
+            while n < args.limit and any(target_per_split[s] < len(by_split[s]) for s in target_per_split):
+                for s in sorted(target_per_split.keys(), key=lambda x: -len(by_split[x])):
+                    if target_per_split[s] < len(by_split[s]) and n < args.limit:
+                        target_per_split[s] += 1
+                        n += 1
+                        break
+            matching_uids = []
+            for s, uids in by_split.items():
+                matching_uids.extend(random.sample(uids, min(target_per_split[s], len(uids))))
+            random.shuffle(matching_uids)
+            print(f"Sampled {len(matching_uids)} takes (split-proportional)")
+        all_uids = matching_uids
+    
     print(f"\nTotal UIDs to process: {len(all_uids)}\n")
     
-    output_dir = Path(f"../output_dir_{scenario_label}")
+    if args.output_dir:
+        output_dir = Path(args.output_dir)
+    else:
+        output_dir = Path(f"../output_dir_{scenario_label}")
     output_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Output directory: {output_dir.resolve()}")
     
     # Process UIDs
     success_count = 0
@@ -394,14 +400,12 @@ def main():
         print(f"Progress: {i}/{len(all_uids)} | Elapsed: {format_duration((uid_start - script_start).total_seconds())}")
         print(f"{'*'*80}")
         
-        # Find annotation
-        result = find_annotation_for_uid(uid, args.annotation_root)
-        if result is None:
+        if uid not in annotations:
             print(f"Annotation not found for {uid}")
             failed_uids.append((uid, "annotation_not_found"))
             continue
         
-        annotation, split_name = result
+        annotation, split_name = annotations[uid]
         print(f"Found in {split_name} split")
         
         # Process
@@ -410,7 +414,6 @@ def main():
             uid_duration = (datetime.now() - uid_start).total_seconds()
             uid_times.append(uid_duration)
             
-            # Estimate remaining time
             if len(uid_times) > 0:
                 avg_time = sum(uid_times) / len(uid_times)
                 remaining = (len(all_uids) - i) * avg_time
