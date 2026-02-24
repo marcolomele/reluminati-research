@@ -10,13 +10,8 @@ Usage:
     python experiment.py --config config.json
 
 TODO: 
-* Make mask decoding more efficient by pre-extracting masks to disk in the
-root folder using the ego-exo correspondence structure (see load_relation_masks.py
-and process_data.py). Current approach decodes COCO RLE from annotation.json at
-runtime for each pair.
 * List of API keys for limits + sleep between requests.
 * add congif arguments to output dataframe columns
-* every X amount of frames, save to local the predicted masks for each of the three experiments to be able to compare qualitatively the model
 """
 
 import argparse
@@ -28,7 +23,6 @@ import os
 import random
 import time
 from pathlib import Path
-
 import cv2
 import numpy as np
 import pandas as pd
@@ -50,6 +44,8 @@ logger = logging.getLogger(__name__)
 
 EXPERIMENTS = ["EXP-A", "EXP-B", "EXP-C"]
 SAVE_INTERVAL = 50
+DEFAULT_VLM_REPROMPT_GROWTH_THRESHOLD = 0.20
+DEFAULT_VLM_REPROMPT_MOVEMENT_THRESHOLD = 0.20
 
 
 # ─── Configuration ───────────────────────────────────────────────────────────
@@ -64,6 +60,30 @@ def parse_args():
 def load_config(path):
     with open(path) as f:
         return json.load(f)
+
+
+def get_api_keys(cfg, list_key, single_key, provider_name):
+    """
+    Read API keys from config.
+
+    Preferred format is a list (e.g. `vlm-api-keys`), with fallback to the
+    legacy single-key field for backward compatibility.
+    """
+    keys = cfg.get(list_key)
+    if keys is None and single_key in cfg:
+        keys = [cfg[single_key]]
+
+    if not isinstance(keys, list) or not keys:
+        raise ValueError(
+            f"Missing {provider_name} API keys. Provide `{list_key}` (list) in config."
+        )
+
+    cleaned = [k.strip() for k in keys if isinstance(k, str) and k.strip()]
+    if not cleaned:
+        raise ValueError(
+            f"No valid {provider_name} API keys found in `{list_key}`."
+        )
+    return cleaned
 
 
 # ─── Data Loading ────────────────────────────────────────────────────────────
@@ -188,31 +208,85 @@ def file_to_b64(path):
 
 def init_vlm(cfg):
     """Initialize the Ollama VLM client."""
-    return Client(
-        host="https://ollama.com",
-        headers={"Authorization": f"Bearer {cfg['vlm-api-key']}"},
+    keys = get_api_keys(cfg, "vlm-api-keys", "vlm-api-key", "Ollama")
+    logger.info("Loaded %d Ollama API key(s).", len(keys))
+    return {
+        "keys": keys,
+        "idx": 0,
+        "client": Client(
+            host="https://ollama.com",
+            headers={"Authorization": f"Bearer {keys[0]}"},
+        ),
+    }
+
+
+def _ollama_error_requires_key_rotation(err):
+    txt = str(err).lower()
+    return any(
+        x in txt
+        for x in (
+            "401",
+            "403",
+            "429",
+            "quota",
+            "rate limit",
+            "too many requests",
+            "unauthorized",
+            "forbidden",
+            "invalid api key",
+            "invalid token",
+        )
     )
 
 
-def vlm_caption(client, model, images_b64, prompt, retries=3):
+def _rotate_vlm_key(vlm_state):
+    """Switch to the next Ollama key and rebuild the client. Returns False if exhausted."""
+    next_idx = vlm_state["idx"] + 1
+    if next_idx >= len(vlm_state["keys"]):
+        return False
+    vlm_state["idx"] = next_idx
+    new_key = vlm_state["keys"][next_idx]
+    vlm_state["client"] = Client(
+        host="https://ollama.com",
+        headers={"Authorization": f"Bearer {new_key}"},
+    )
+    return True
+
+
+def vlm_caption(vlm_state, model, images_b64, prompt):
     """Query the VLM with images + prompt. Returns the generated text."""
     msgs = [{"role": "user", "content": prompt, "images": images_b64}]
 
-    for attempt in range(retries):
+    while True:
         try:
             text = ""
-            for part in client.chat(model, messages=msgs, stream=True):
+            for part in vlm_state["client"].chat(
+                model, 
+                messages=msgs, 
+                stream=True,
+                options={
+                    "temperature": 0,
+                    "seed": 777,
+                    "num_predict": 32,
+                    },
+                ):
                 text += part.message.content
             return text.strip()
         except Exception as e:
-            if "429" in str(e) or "quota" in str(e).lower():
-                wait = 30 * (attempt + 1)
-                logger.warning("Rate limited, waiting %ds (attempt %d/%d)", wait, attempt + 1, retries)
-                time.sleep(wait)
+            if _ollama_error_requires_key_rotation(e):
+                switched = _rotate_vlm_key(vlm_state)
+                if switched:
+                    logger.warning(
+                        "Ollama request failed; switched to API key #%d/%d.",
+                        vlm_state["idx"] + 1,
+                        len(vlm_state["keys"]),
+                    )
+                    continue
+                logger.error("Ollama request failed and no API keys remain: %s", e)
+                return "ERROR"
             else:
                 logger.error("VLM error: %s", e)
                 return "ERROR"
-    return "ERROR"
 
 
 # ─── SAM3 ────────────────────────────────────────────────────────────────────
@@ -220,13 +294,34 @@ def vlm_caption(client, model, images_b64, prompt, retries=3):
 
 def init_sam3(cfg):
     """Load the SAM3 model and processor onto the best available device."""
-    login(token=cfg["huggingface-api-key"])
     device = "cuda" if torch.cuda.is_available() else "cpu"
     name = cfg["huggingface-model"]
-    model = Sam3Model.from_pretrained(name).to(device)
-    proc = Sam3Processor.from_pretrained(name)
-    logger.info("SAM3 ready on %s (%s)", device, name)
-    return model, proc, device
+    keys = get_api_keys(cfg, "huggingface-api-keys", "huggingface-api-key", "Hugging Face")
+    logger.info("Loaded %d Hugging Face API key(s).", len(keys))
+
+    last_error = None
+    for idx, key in enumerate(keys):
+        try:
+            login(token=key)
+            model = Sam3Model.from_pretrained(name).to(device)
+            proc = Sam3Processor.from_pretrained(name)
+            logger.info("SAM3 ready on %s (%s) using HF key #%d/%d", device, name, idx + 1, len(keys))
+            return model, proc, device
+        except Exception as e:
+            last_error = e
+            if idx < len(keys) - 1:
+                logger.warning(
+                    "Hugging Face init failed with key #%d/%d; trying next key. Error: %s",
+                    idx + 1,
+                    len(keys),
+                    e,
+                )
+                continue
+            break
+
+    raise RuntimeError(
+        "Failed to initialize SAM3 with all Hugging Face API keys."
+    ) from last_error
 
 
 def sam3_segment(model, proc, img_path, text_prompt, device):
@@ -314,7 +409,63 @@ def spatial_covariates(mask_np):
 # ─── Per-Pair Pipeline ──────────────────────────────────────────────────────
 
 
-def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann):
+def mask_centroid(mask_np):
+    """Return (cy, cx) centroid in pixel space, or None for empty masks."""
+    coords = np.argwhere(mask_np)
+    if len(coords) == 0:
+        return None
+    cy, cx = coords.mean(axis=0)
+    return float(cy), float(cx)
+
+
+def _should_reprompt(
+    src_mask_area,
+    src_centroid,
+    src_shape,
+    cache_entry,
+    growth_threshold,
+    movement_threshold,
+):
+    """
+    Decide whether to refresh VLM captions based on growth and movement.
+
+    We reprompt on first sighting, or when mask area grows by at least
+    `growth_threshold` relative to the best area seen so far, or when the
+    object centroid shifts by at least `movement_threshold` in x or y.
+    """
+    if cache_entry is None:
+        return True, "cold_start", 0.0, 0.0, 0.0
+
+    best_area = cache_entry["best_src_mask_area"]
+    growth = 0.0
+    if best_area <= 0:
+        growth_trigger = src_mask_area > 0
+    else:
+        growth = (src_mask_area - best_area) / best_area
+        growth_trigger = growth >= growth_threshold
+
+    dx_ratio, dy_ratio = 0.0, 0.0
+    movement_trigger = False
+    ref_centroid = cache_entry.get("ref_src_centroid")
+    if src_centroid is not None and ref_centroid is not None:
+        h, w = src_shape
+        dy_ratio = abs(src_centroid[0] - ref_centroid[0]) / max(h, 1)
+        dx_ratio = abs(src_centroid[1] - ref_centroid[1]) / max(w, 1)
+        movement_trigger = dx_ratio >= movement_threshold or dy_ratio >= movement_threshold
+
+    reprompt = growth_trigger or movement_trigger
+    if growth_trigger and movement_trigger:
+        reason = "growth+movement"
+    elif growth_trigger:
+        reason = "growth"
+    elif movement_trigger:
+        reason = "movement"
+    else:
+        reason = "reuse"
+    return reprompt, reason, growth, dx_ratio, dy_ratio
+
+
+def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
     """
     Run EXP-A / EXP-B / EXP-C for one pair and return a list of result dicts.
     """
@@ -338,24 +489,72 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann):
         return []
 
     spatial = spatial_covariates(dst_gt)
+    src_mask_area = int(np.sum(src_mask))
+    src_centroid = mask_centroid(src_mask)
+    growth_threshold = float(
+        cfg.get(
+            "vlm-reprompt-growth-threshold",
+            DEFAULT_VLM_REPROMPT_GROWTH_THRESHOLD,
+        )
+    )
+    movement_threshold = float(
+        cfg.get(
+            "vlm-reprompt-movement-threshold",
+            DEFAULT_VLM_REPROMPT_MOVEMENT_THRESHOLD,
+        )
+    )
 
-    overlay_img = create_overlay(src_rgb, src_mask)
-    overlay_b64 = pil_to_b64(overlay_img)
-    src_b64 = file_to_b64(src_rgb)
-    dst_b64 = file_to_b64(dst_rgb)
-
-    exp_spec = {
-        "EXP-A": {"images": [overlay_b64], "prompt": cfg["prompt-exp-a"]},
-        "EXP-B": {"images": [src_b64, overlay_b64], "prompt": cfg["prompt-exp-b"]},
-        "EXP-C": {"images": [src_b64, overlay_b64, dst_b64], "prompt": cfg["prompt-exp-c"]},
-    }
+    # Tracks object-level VLM memory across frames for the same stream.
+    cache_key = (meta["take_uid"], obj, src_cam, dst_cam)
+    cache_entry = caption_cache.get(cache_key)
+    reprompt, reprompt_reason, growth, dx_ratio, dy_ratio = _should_reprompt(
+        src_mask_area,
+        src_centroid,
+        src_mask.shape,
+        cache_entry,
+        growth_threshold,
+        movement_threshold,
+    )
 
     model_name = cfg["vlm-model"]
-    rows = []
+    if reprompt:
+        overlay_img = create_overlay(src_rgb, src_mask)
+        overlay_b64 = pil_to_b64(overlay_img)
+        src_b64 = file_to_b64(src_rgb)
+        dst_b64 = file_to_b64(dst_rgb)
 
+        exp_spec = {
+            "EXP-A": {"images": [overlay_b64], "prompt": cfg["prompt-exp-a"]},
+            "EXP-B": {"images": [src_b64, overlay_b64], "prompt": cfg["prompt-exp-b"]},
+            "EXP-C": {"images": [src_b64, overlay_b64, dst_b64], "prompt": cfg["prompt-exp-c"]},
+        }
+        captions = {
+            exp_id: vlm_caption(vlm, model_name, exp_spec[exp_id]["images"], exp_spec[exp_id]["prompt"])
+            for exp_id in EXPERIMENTS
+        }
+        prev_best_area = 0 if cache_entry is None else cache_entry["best_src_mask_area"]
+        caption_cache[cache_key] = {
+            "best_src_mask_area": max(prev_best_area, src_mask_area),
+            "ref_src_centroid": src_centroid,
+            "captions": captions,
+        }
+        logger.info(
+            "VLM reprompted (%s): %s | %s | frame %s | src_area=%d | growth=%.3f | dx=%.3f | dy=%.3f",
+            reprompt_reason,
+            meta["take_uid"],
+            obj,
+            frame,
+            src_mask_area,
+            growth,
+            dx_ratio,
+            dy_ratio,
+        )
+    else:
+        captions = cache_entry["captions"]
+
+    rows = []
     for exp_id in EXPERIMENTS:
-        spec = exp_spec[exp_id]
-        caption = vlm_caption(vlm, model_name, spec["images"], spec["prompt"])
+        caption = captions[exp_id]
         sam_out = sam3_segment(sam_m, sam_p, dst_rgb, caption, dev)
 
         h_s, w_s = ( #height and width of the predicted mask 
@@ -379,6 +578,13 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann):
             "experiment": exp_id,
             "vlm_model": model_name,
             "vlm_output": caption,
+            "vlm_reprompted": reprompt,
+            "vlm_reprompt_reason": reprompt_reason,
+            "src_mask_area": src_mask_area,
+            "vlm_growth_threshold": growth_threshold,
+            "vlm_movement_threshold": movement_threshold,
+            "src_move_x_ratio": dx_ratio,
+            "src_move_y_ratio": dy_ratio,
             **metrics,
             **spatial,
         })
@@ -404,6 +610,7 @@ def main():
     sam_m, sam_p, dev = init_sam3(cfg)
 
     ann_cache = {}
+    caption_cache = {}
     all_rows = []
     n = len(pairs)
     t0 = time.time()
@@ -421,7 +628,18 @@ def main():
             ann_cache[uid] = load_annotation(root, uid)
 
         try:
-            all_rows.extend(process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann_cache[uid]))
+            all_rows.extend(
+                process_pair(
+                    meta,
+                    cfg,
+                    vlm,
+                    sam_m,
+                    sam_p,
+                    dev,
+                    ann_cache[uid],
+                    caption_cache,
+                )
+            )
         except Exception as e:
             logger.error("Pair %d failed: %s", i + 1, e)
 
