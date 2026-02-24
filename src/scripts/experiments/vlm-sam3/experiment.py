@@ -10,7 +10,6 @@ Usage:
     python experiment.py --config config.json
 
 TODO: 
-* List of API keys for limits + sleep between requests.
 * add congif arguments to output dataframe columns
 """
 
