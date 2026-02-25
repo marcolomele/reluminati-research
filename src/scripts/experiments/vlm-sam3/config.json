@@ -32,6 +32,12 @@
         { "id": "EXP-C",      "images": ["src_clean", "src_overlay", "dst"],  "prompt": "clean-overlay-dst",  "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32 },
         { "id": "EXP-D-bbox", "images": ["src_bbox"],                         "prompt": "bbox-describe",      "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32 },
         { "id": "EXP-E-crop", "images": ["src_crop"],                         "prompt": "crop-describe",      "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32 },
-        { "id": "EXP-F-mf5",  "images": ["src_overlay"],                      "prompt": "multiframe-overlay", "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32, "num_frames": 5 }
+        { "id": "EXP-F-mf5",  "images": ["src_overlay"],                      "prompt": "multiframe-overlay", "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32, "num_frames": 5 },
+
+        { "id": "EXP-A-32b",  "images": ["src_overlay"],                     "prompt": "overlay-only",       "vlm_model": "qwen3-vl:32b-cloud",  "num_predict": 32 },
+        { "id": "EXP-A-7b",   "images": ["src_overlay"],                     "prompt": "overlay-only",       "vlm_model": "qwen3-vl:7b-cloud",   "num_predict": 32 },
+
+        { "id": "EXP-C-32b",  "images": ["src_clean", "src_overlay", "dst"], "prompt": "clean-overlay-dst",  "vlm_model": "qwen3-vl:32b-cloud",  "num_predict": 32 },
+        { "id": "EXP-C-7b",   "images": ["src_clean", "src_overlay", "dst"], "prompt": "clean-overlay-dst",  "vlm_model": "qwen3-vl:7b-cloud",   "num_predict": 32 }
     ]
 }
