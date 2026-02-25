@@ -122,10 +122,12 @@ def load_pairs_from_json(cfg):
 
         if direction_norm == "egoexo":
             src_camera, dst_camera = aria_camera, cam_camera
-            src_rgb_path, dst_rgb_path = aria_rgb, cam_rgb
         else:
             src_camera, dst_camera = cam_camera, aria_camera
-            src_rgb_path, dst_rgb_path = cam_rgb, aria_rgb
+
+        # Images live at root/take/camera/frame.jpg (flat — no object/rgb subdirs)
+        src_rgb_path = os.path.join(root_dir, take_uid, src_camera, frame)
+        dst_rgb_path = os.path.join(root_dir, take_uid, dst_camera, frame)
 
         result.append({
             "take_uid": take_uid,
@@ -156,8 +158,8 @@ def load_pairs_from_csv(csv_path, root_dir):
         src_cam = str(row["src_camera"])
         dst_cam = str(row["dest_camera"])
         frame = str(row["frame"])
-        src_rgb_path = os.path.join(root_dir, take_uid, src_cam, obj, "rgb", frame)
-        dst_rgb_path = os.path.join(root_dir, take_uid, dst_cam, obj, "rgb", frame)
+        src_rgb_path = os.path.join(root_dir, take_uid, src_cam, frame)
+        dst_rgb_path = os.path.join(root_dir, take_uid, dst_cam, frame)
         result.append({
             "take_uid": take_uid,
             "object_name": obj,
@@ -320,7 +322,7 @@ def sample_source_frames(ann, obj, cam, n_frames, take_uid, root_dir):
     result = []
     for idx in indices:
         fid = all_frame_ids[idx]
-        img_path = os.path.join(root_dir, take_uid, cam, obj, "rgb", fid)
+        img_path = os.path.join(root_dir, take_uid, cam, fid)
         try:
             img_path = resolve_img(img_path)
         except FileNotFoundError:
