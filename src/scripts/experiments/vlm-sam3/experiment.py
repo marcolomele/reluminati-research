@@ -500,7 +500,7 @@ def sam3_segment(model, proc, img_path, text_prompt, device):
 
 
 def compute_metrics(gt, sam_out):
-    """Compute IoU, balanced accuracy, contour accuracy, and label error."""
+    """Compute IoU, balanced accuracy, contour accuracy, and location error."""
     masks = sam_out["masks"]
     if len(masks) == 0:
         return {"iou": 0.0, "ba": 0.0, "ca": 0.0, "le": 1.0}
@@ -663,15 +663,25 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
         # Per-experiment cache key so each experiment's caption is tracked independently.
         cache_key = (take_uid, obj, src_cam, dst_cam, exp_id)
         cache_entry = caption_cache.get(cache_key)
+        video_window = int(exp_cfg.get("video_window", 0))
 
-        reprompt, reprompt_reason, growth, dx_ratio, dy_ratio = _should_reprompt(
-            src_mask_area,
-            src_centroid,
-            src_mask.shape,
-            cache_entry,
-            growth_threshold,
-            movement_threshold,
-        )
+        if video_window > 0:
+            # Window-based reuse: call VLM once every `video_window` consecutive frames.
+            # Pairs must be sorted by stream (take/object/cameras/frame) for this to be
+            # meaningful — main() enforces this automatically when video_window > 0.
+            frame_count = 0 if cache_entry is None else cache_entry.get("window_frame_count", video_window)
+            reprompt = (cache_entry is None) or (frame_count >= video_window)
+            reprompt_reason = "cold_start" if cache_entry is None else ("window_start" if reprompt else "window_reuse")
+            growth, dx_ratio, dy_ratio = 0.0, 0.0, 0.0
+        else:
+            reprompt, reprompt_reason, growth, dx_ratio, dy_ratio = _should_reprompt(
+                src_mask_area,
+                src_centroid,
+                src_mask.shape,
+                cache_entry,
+                growth_threshold,
+                movement_threshold,
+            )
 
         if reprompt:
             images_b64 = [
@@ -687,6 +697,7 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
                 "best_src_mask_area": max(prev_best_area, src_mask_area),
                 "ref_src_centroid": src_centroid,
                 "caption": caption,
+                **({"window_frame_count": 1} if video_window > 0 else {}),
             }
             logger.info(
                 "VLM reprompted (%s) [%s]: %s | %s | frame %s | src_area=%d | growth=%.3f | dx=%.3f | dy=%.3f",
@@ -694,6 +705,8 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
             )
         else:
             caption = cache_entry["caption"]
+            if video_window > 0:
+                cache_entry["window_frame_count"] = frame_count + 1
 
         sam_out = sam3_segment(sam_m, sam_p, dst_rgb, caption, dev)
 
@@ -721,6 +734,7 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
             "vlm_reprompted": reprompt,
             "vlm_reprompt_reason": reprompt_reason,
             "vlm_num_frames": exp_frames,
+            "vlm_video_window": video_window,
             "src_mask_area": src_mask_area,
             "vlm_growth_threshold": growth_threshold,
             "vlm_movement_threshold": movement_threshold,
@@ -747,6 +761,12 @@ def main():
     pairs = load_pairs(cfg)
     if not using_csv:
         pairs = subsample_pairs(pairs, cfg["subset-run-percentage"], cfg["subset-seed"])
+
+    if any(int(e.get("video_window", 0)) > 0 for e in cfg["experiments"]):
+        pairs.sort(key=lambda m: (
+            m["take_uid"], m["object_name"], m["src_camera"], m["dst_camera"], int(m["frame"])
+        ))
+        logger.info("Pairs sorted by stream for video-window experiments.")
 
     vlm = init_vlm(cfg)
     sam_m, sam_p, dev = init_sam3(cfg)
