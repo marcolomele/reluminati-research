@@ -1,16 +1,19 @@
 """
 Experiment pipeline for evaluating VLM + SAM3 object correspondence.
 
-Runs three ablation experiments per (source, destination) pair:
-  EXP-A:  source image with mask overlay only
-  EXP-B:  clean source image + source image with mask overlay
-  EXP-C:  clean source image + source image with mask overlay + destination image
+Experiments are fully config-driven via config.json. Each entry in
+cfg["experiments"] specifies an id, image tokens, prompt key, model,
+num_predict, and optional num_frames for multi-frame inputs.
+
+Built-in image tokens:
+  src_overlay  – source frame with red mask overlay
+  src_clean    – source frame with true colours
+  src_bbox     – source frame with red bounding box around object
+  src_crop     – source frame cropped to object bounding box
+  dst          – destination frame (single frame only)
 
 Usage:
     python experiment.py --config config.json
-
-TODO: 
-* add congif arguments to output dataframe columns
 """
 
 import argparse
@@ -41,7 +44,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-EXPERIMENTS = ["EXP-A", "EXP-B", "EXP-C"]
 SAVE_INTERVAL = 50
 DEFAULT_VLM_REPROMPT_GROWTH_THRESHOLD = 0.20
 DEFAULT_VLM_REPROMPT_MOVEMENT_THRESHOLD = 0.20
@@ -88,14 +90,91 @@ def get_api_keys(cfg, list_key, single_key, provider_name):
 # ─── Data Loading ────────────────────────────────────────────────────────────
 
 
-def load_pairs(root_dir, split, direction):
-    """Load pair tuples from {split}_{direction}_pairs.json in root directory."""
+def load_pairs_from_json(cfg):
+    """
+    Load pairs from {split}_{direction}_pairs.json and return meta dicts.
+
+    Resolves src/dst according to cfg["direction"] so callers get unified keys:
+    take_uid, object_name, frame, src_camera, dst_camera, src_rgb_path, dst_rgb_path
+    """
+    root_dir = cfg["root-data-directory"]
+    split = cfg["split"]
+    direction = cfg["direction"]
     pairs_path = os.path.join(root_dir, f"{split}_{direction}_pairs.json")
     logger.info("Loading pairs: %s", pairs_path)
     with open(pairs_path) as f:
-        pairs = json.load(f)
-    logger.info("Loaded %d pairs", len(pairs))
-    return pairs
+        raw_pairs = json.load(f)
+    logger.info("Loaded %d pairs", len(raw_pairs))
+
+    direction_norm = direction.replace("-", "")
+    result = []
+    for pair in raw_pairs:
+        aria_rgb, _, cam_rgb, _ = pair
+
+        parts_aria = Path(os.path.relpath(aria_rgb, root_dir)).parts
+        parts_cam = Path(os.path.relpath(cam_rgb, root_dir)).parts
+
+        take_uid = parts_aria[0]
+        aria_camera = parts_aria[1]
+        object_name = parts_aria[2]
+        frame = parts_aria[4]
+        cam_camera = parts_cam[1]
+
+        if direction_norm == "egoexo":
+            src_camera, dst_camera = aria_camera, cam_camera
+            src_rgb_path, dst_rgb_path = aria_rgb, cam_rgb
+        else:
+            src_camera, dst_camera = cam_camera, aria_camera
+            src_rgb_path, dst_rgb_path = cam_rgb, aria_rgb
+
+        result.append({
+            "take_uid": take_uid,
+            "object_name": object_name,
+            "frame": frame,
+            "src_camera": src_camera,
+            "dst_camera": dst_camera,
+            "src_rgb_path": src_rgb_path,
+            "dst_rgb_path": dst_rgb_path,
+        })
+    return result
+
+
+def load_pairs_from_csv(csv_path, root_dir):
+    """
+    Load pairs from CSV baseline file and return meta dicts.
+
+    CSV columns: take_uid, object_name, src_camera, dest_camera, frame
+    Image paths reconstructed as: root_dir/take_uid/camera/object_name/rgb/frame
+    """
+    logger.info("Loading pairs from CSV: %s", csv_path)
+    df = pd.read_csv(csv_path)
+    logger.info("Loaded %d pairs from CSV", len(df))
+    result = []
+    for _, row in df.iterrows():
+        take_uid = str(row["take_uid"])
+        obj = str(row["object_name"])
+        src_cam = str(row["src_camera"])
+        dst_cam = str(row["dest_camera"])
+        frame = str(row["frame"])
+        src_rgb_path = os.path.join(root_dir, take_uid, src_cam, obj, "rgb", frame)
+        dst_rgb_path = os.path.join(root_dir, take_uid, dst_cam, obj, "rgb", frame)
+        result.append({
+            "take_uid": take_uid,
+            "object_name": obj,
+            "frame": frame,
+            "src_camera": src_cam,
+            "dst_camera": dst_cam,
+            "src_rgb_path": src_rgb_path,
+            "dst_rgb_path": dst_rgb_path,
+        })
+    return result
+
+
+def load_pairs(cfg):
+    """Dispatcher: load pairs from CSV baseline or JSON depending on config."""
+    if "pairs-csv" in cfg:
+        return load_pairs_from_csv(cfg["pairs-csv"], cfg["root-data-directory"])
+    return load_pairs_from_json(cfg)
 
 
 def subsample_pairs(pairs, pct, seed):
@@ -107,29 +186,6 @@ def subsample_pairs(pairs, pct, seed):
     sampled = random.sample(pairs, n)
     logger.info("Subsampled %d / %d pairs (%.0f%%, seed=%d)", n, len(pairs), pct * 100, seed)
     return sampled
-
-
-def parse_pair(pair, root_dir):
-    """
-    Extract metadata from a 4-tuple pair.
-
-    Pair: [aria_rgb, aria_mask, cam_rgb, cam_mask]
-    Path structure: root_dir / take_uid / camera / object / {rgb|mask} / frame
-    """
-    aria_rgb, _, cam_rgb, _ = pair
-
-    parts_aria = Path(os.path.relpath(aria_rgb, root_dir)).parts
-    parts_cam = Path(os.path.relpath(cam_rgb, root_dir)).parts
-
-    return {
-        "take_uid": parts_aria[0],
-        "aria_camera": parts_aria[1],
-        "object_name": parts_aria[2],
-        "frame": parts_aria[4],
-        "cam_camera": parts_cam[1],
-        "aria_rgb_path": aria_rgb,
-        "cam_rgb_path": cam_rgb,
-    }
 
 
 def resolve_img(path):
@@ -171,22 +227,67 @@ def get_mask(ann, obj, cam, frame):
 # ─── Image Helpers ───────────────────────────────────────────────────────────
 
 
+def _align_mask(mask_np, img_w, img_h):
+    """Resize mask to match (img_w, img_h) if needed. Returns bool array."""
+    if mask_np.shape[0] != img_h or mask_np.shape[1] != img_w:
+        return cv2.resize(
+            mask_np.astype(np.uint8), (img_w, img_h), interpolation=cv2.INTER_NEAREST
+        ).astype(bool)
+    return mask_np
+
+
+def mask_bbox(mask_np):
+    """Return (rmin, rmax, cmin, cmax) tight bounding box, or None if mask is empty."""
+    rows = np.any(mask_np, axis=1)
+    cols = np.any(mask_np, axis=0)
+    if not rows.any():
+        return None
+    rmin, rmax = int(np.where(rows)[0][[0, -1]][0]), int(np.where(rows)[0][[0, -1]][1])
+    cmin, cmax = int(np.where(cols)[0][[0, -1]][0]), int(np.where(cols)[0][[0, -1]][1])
+    return rmin, rmax, cmin, cmax
+
+
 def create_overlay(img_path, mask_np, alpha=0.5):
     """Return a PIL Image with a red overlay on the masked region."""
     img = Image.open(img_path).convert("RGB")
     w, h = img.size
-
-    if mask_np.shape[0] != h or mask_np.shape[1] != w:
-        mask_np = cv2.resize(
-            mask_np.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST
-        ).astype(bool)
-
+    aligned = _align_mask(mask_np, w, h)
     arr = np.array(img)
     red = np.zeros_like(arr)
     red[:] = [255, 0, 0]
-    m = mask_np == 1
+    m = aligned == 1
     arr[m] = (arr[m] * (1 - alpha) + red[m] * alpha).astype(np.uint8)
     return Image.fromarray(arr)
+
+
+def create_bbox_image(img_path, mask_np, color=(255, 0, 0), thickness=3):
+    """Return a PIL Image with a colored rectangle drawn around the masked region."""
+    img = Image.open(img_path).convert("RGB")
+    w, h = img.size
+    aligned = _align_mask(mask_np, w, h)
+    bbox = mask_bbox(aligned)
+    if bbox is None:
+        return img
+    rmin, rmax, cmin, cmax = bbox
+    arr = np.array(img)
+    cv2.rectangle(arr, (cmin, rmin), (cmax, rmax), color, thickness)
+    return Image.fromarray(arr)
+
+
+def create_crop_image(img_path, mask_np, padding=10):
+    """Return a PIL Image cropped to the bounding box of the mask (+ padding)."""
+    img = Image.open(img_path).convert("RGB")
+    w, h = img.size
+    aligned = _align_mask(mask_np, w, h)
+    bbox = mask_bbox(aligned)
+    if bbox is None:
+        return img
+    rmin, rmax, cmin, cmax = bbox
+    left = max(0, cmin - padding)
+    upper = max(0, rmin - padding)
+    right = min(w, cmax + padding)
+    lower = min(h, rmax + padding)
+    return img.crop((left, upper, right, lower))
 
 
 def pil_to_b64(pil_img, fmt="JPEG"):
@@ -200,6 +301,62 @@ def file_to_b64(path):
     """Base64-encode an image file on disk."""
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+
+
+def sample_source_frames(ann, obj, cam, n_frames, take_uid, root_dir):
+    """
+    Return n_frames evenly spaced (img_path, mask_np) tuples for a source stream.
+
+    Frame IDs are taken from annotation, sorted numerically. Missing files are
+    silently skipped.
+    """
+    try:
+        all_frame_ids = sorted(ann["masks"][obj][cam].keys(), key=lambda x: int(x))
+    except KeyError:
+        return []
+    if not all_frame_ids:
+        return []
+    indices = np.linspace(0, len(all_frame_ids) - 1, n_frames, dtype=int)
+    result = []
+    for idx in indices:
+        fid = all_frame_ids[idx]
+        img_path = os.path.join(root_dir, take_uid, cam, obj, "rgb", fid)
+        try:
+            img_path = resolve_img(img_path)
+        except FileNotFoundError:
+            continue
+        mask_np = decode_rle(ann["masks"][obj][cam][fid])
+        if mask_np is not None:
+            result.append((img_path, mask_np))
+    return result
+
+
+def build_images_for_token(token, src_rgb, src_mask, dst_rgb, ann, take_uid, obj, src_cam, root_dir, num_frames):
+    """
+    Dispatch on token and return a list of base64-encoded image strings.
+
+    Multi-frame tokens (src_overlay, src_clean) return num_frames images when
+    num_frames > 1; single-frame tokens (src_bbox, src_crop, dst) always return
+    exactly one image.
+    """
+    if token == "src_overlay":
+        if num_frames > 1:
+            frames = sample_source_frames(ann, obj, src_cam, num_frames, take_uid, root_dir)
+            return [pil_to_b64(create_overlay(fp, m)) for fp, m in frames]
+        return [pil_to_b64(create_overlay(src_rgb, src_mask))]
+    elif token == "src_clean":
+        if num_frames > 1:
+            frames = sample_source_frames(ann, obj, src_cam, num_frames, take_uid, root_dir)
+            return [file_to_b64(fp) for fp, _ in frames]
+        return [file_to_b64(src_rgb)]
+    elif token == "src_bbox":
+        return [pil_to_b64(create_bbox_image(src_rgb, src_mask))]
+    elif token == "src_crop":
+        return [pil_to_b64(create_crop_image(src_rgb, src_mask))]
+    elif token == "dst":
+        return [file_to_b64(dst_rgb)]
+    else:
+        raise ValueError(f"Unknown image token: {token!r}")
 
 
 # ─── VLM ─────────────────────────────────────────────────────────────────────
@@ -252,7 +409,7 @@ def _rotate_vlm_key(vlm_state):
     return True
 
 
-def vlm_caption(vlm_state, model, images_b64, prompt):
+def vlm_caption(vlm_state, model, images_b64, prompt, num_predict=32):
     """Query the VLM with images + prompt. Returns the generated text."""
     msgs = [{"role": "user", "content": prompt, "images": images_b64}]
 
@@ -260,15 +417,15 @@ def vlm_caption(vlm_state, model, images_b64, prompt):
         try:
             text = ""
             for part in vlm_state["client"].chat(
-                model, 
-                messages=msgs, 
+                model,
+                messages=msgs,
                 stream=True,
                 options={
                     "temperature": 0,
                     "seed": 777,
-                    "num_predict": 32,
-                    },
-                ):
+                    "num_predict": num_predict,
+                },
+            ):
                 text += part.message.content
             return text.strip()
         except Exception as e:
@@ -466,97 +623,81 @@ def _should_reprompt(
 
 def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
     """
-    Run EXP-A / EXP-B / EXP-C for one pair and return a list of result dicts.
+    Run all config-defined experiments for one pair and return a list of result dicts.
     """
-    direction = cfg["direction"].replace("-", "")
-
-    if direction == "egoexo":
-        src_cam, dst_cam = meta["aria_camera"], meta["cam_camera"]
-        src_rgb, dst_rgb = meta["aria_rgb_path"], meta["cam_rgb_path"]
-    else:
-        src_cam, dst_cam = meta["cam_camera"], meta["aria_camera"]
-        src_rgb, dst_rgb = meta["cam_rgb_path"], meta["aria_rgb_path"]
-
-    src_rgb = resolve_img(src_rgb)
-    dst_rgb = resolve_img(dst_rgb)
-    obj, frame = meta["object_name"], meta["frame"]
+    src_cam = meta["src_camera"]
+    dst_cam = meta["dst_camera"]
+    src_rgb = resolve_img(meta["src_rgb_path"])
+    dst_rgb = resolve_img(meta["dst_rgb_path"])
+    obj = meta["object_name"]
+    frame = meta["frame"]
+    take_uid = meta["take_uid"]
+    root_dir = cfg["root-data-directory"]
 
     src_mask = get_mask(ann, obj, src_cam, frame)
     dst_gt = get_mask(ann, obj, dst_cam, frame)
     if src_mask is None or dst_gt is None:
-        logger.warning("Mask missing: %s / %s / %s – skipped", meta["take_uid"], obj, frame)
+        logger.warning("Mask missing: %s / %s / %s – skipped", take_uid, obj, frame)
         return []
 
     spatial = spatial_covariates(dst_gt)
     src_mask_area = int(np.sum(src_mask))
     src_centroid = mask_centroid(src_mask)
     growth_threshold = float(
-        cfg.get(
-            "vlm-reprompt-growth-threshold",
-            DEFAULT_VLM_REPROMPT_GROWTH_THRESHOLD,
-        )
+        cfg.get("vlm-reprompt-growth-threshold", DEFAULT_VLM_REPROMPT_GROWTH_THRESHOLD)
     )
     movement_threshold = float(
-        cfg.get(
-            "vlm-reprompt-movement-threshold",
-            DEFAULT_VLM_REPROMPT_MOVEMENT_THRESHOLD,
-        )
+        cfg.get("vlm-reprompt-movement-threshold", DEFAULT_VLM_REPROMPT_MOVEMENT_THRESHOLD)
     )
-
-    # Tracks object-level VLM memory across frames for the same stream.
-    cache_key = (meta["take_uid"], obj, src_cam, dst_cam)
-    cache_entry = caption_cache.get(cache_key)
-    reprompt, reprompt_reason, growth, dx_ratio, dy_ratio = _should_reprompt(
-        src_mask_area,
-        src_centroid,
-        src_mask.shape,
-        cache_entry,
-        growth_threshold,
-        movement_threshold,
-    )
-
-    model_name = cfg["vlm-model"]
-    if reprompt:
-        overlay_img = create_overlay(src_rgb, src_mask)
-        overlay_b64 = pil_to_b64(overlay_img)
-        src_b64 = file_to_b64(src_rgb)
-        dst_b64 = file_to_b64(dst_rgb)
-
-        exp_spec = {
-            "EXP-A": {"images": [overlay_b64], "prompt": cfg["prompt-exp-a"]},
-            "EXP-B": {"images": [src_b64, overlay_b64], "prompt": cfg["prompt-exp-b"]},
-            "EXP-C": {"images": [src_b64, overlay_b64, dst_b64], "prompt": cfg["prompt-exp-c"]},
-        }
-        captions = {
-            exp_id: vlm_caption(vlm, model_name, exp_spec[exp_id]["images"], exp_spec[exp_id]["prompt"])
-            for exp_id in EXPERIMENTS
-        }
-        prev_best_area = 0 if cache_entry is None else cache_entry["best_src_mask_area"]
-        caption_cache[cache_key] = {
-            "best_src_mask_area": max(prev_best_area, src_mask_area),
-            "ref_src_centroid": src_centroid,
-            "captions": captions,
-        }
-        logger.info(
-            "VLM reprompted (%s): %s | %s | frame %s | src_area=%d | growth=%.3f | dx=%.3f | dy=%.3f",
-            reprompt_reason,
-            meta["take_uid"],
-            obj,
-            frame,
-            src_mask_area,
-            growth,
-            dx_ratio,
-            dy_ratio,
-        )
-    else:
-        captions = cache_entry["captions"]
 
     rows = []
-    for exp_id in EXPERIMENTS:
-        caption = captions[exp_id]
+    for exp_cfg in cfg["experiments"]:
+        exp_id = exp_cfg["id"]
+        exp_model = exp_cfg.get("vlm_model", cfg.get("vlm-model", ""))
+        exp_predict = int(exp_cfg.get("num_predict", 32))
+        exp_frames = int(exp_cfg.get("num_frames", 1))
+        exp_tokens = exp_cfg["images"]
+        exp_prompt_key = exp_cfg["prompt"]
+        exp_prompt = cfg["prompts"].get(exp_prompt_key, exp_prompt_key)
+
+        # Per-experiment cache key so each experiment's caption is tracked independently.
+        cache_key = (take_uid, obj, src_cam, dst_cam, exp_id)
+        cache_entry = caption_cache.get(cache_key)
+
+        reprompt, reprompt_reason, growth, dx_ratio, dy_ratio = _should_reprompt(
+            src_mask_area,
+            src_centroid,
+            src_mask.shape,
+            cache_entry,
+            growth_threshold,
+            movement_threshold,
+        )
+
+        if reprompt:
+            images_b64 = [
+                img
+                for token in exp_tokens
+                for img in build_images_for_token(
+                    token, src_rgb, src_mask, dst_rgb, ann, take_uid, obj, src_cam, root_dir, exp_frames
+                )
+            ]
+            caption = vlm_caption(vlm, exp_model, images_b64, exp_prompt, num_predict=exp_predict)
+            prev_best_area = 0 if cache_entry is None else cache_entry["best_src_mask_area"]
+            caption_cache[cache_key] = {
+                "best_src_mask_area": max(prev_best_area, src_mask_area),
+                "ref_src_centroid": src_centroid,
+                "caption": caption,
+            }
+            logger.info(
+                "VLM reprompted (%s) [%s]: %s | %s | frame %s | src_area=%d | growth=%.3f | dx=%.3f | dy=%.3f",
+                reprompt_reason, exp_id, take_uid, obj, frame, src_mask_area, growth, dx_ratio, dy_ratio,
+            )
+        else:
+            caption = cache_entry["caption"]
+
         sam_out = sam3_segment(sam_m, sam_p, dst_rgb, caption, dev)
 
-        h_s, w_s = ( #height and width of the predicted mask 
+        h_s, w_s = (
             sam_out["masks"][0].shape[-2:] if len(sam_out["masks"]) > 0 else dst_gt.shape
         )
         if dst_gt.shape != (h_s, w_s):
@@ -569,16 +710,17 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
         metrics = compute_metrics(gt_resized, sam_out)
 
         rows.append({
-            "take_uid": meta["take_uid"],
+            "take_uid": take_uid,
             "object_name": obj,
             "src_camera": src_cam,
             "dest_camera": dst_cam,
             "frame": frame,
             "experiment": exp_id,
-            "vlm_model": model_name,
+            "vlm_model": exp_model,
             "vlm_output": caption,
             "vlm_reprompted": reprompt,
             "vlm_reprompt_reason": reprompt_reason,
+            "vlm_num_frames": exp_frames,
             "src_mask_area": src_mask_area,
             "vlm_growth_threshold": growth_threshold,
             "vlm_movement_threshold": movement_threshold,
@@ -598,12 +740,13 @@ def main():
     args = parse_args()
     cfg = load_config(args.config)
 
-    root = cfg["root-data-directory"]
-    split = cfg["split"]
-    direction = cfg["direction"]
+    using_csv = "pairs-csv" in cfg
+    exp_ids = [e["id"] for e in cfg["experiments"]]
+    logger.info("Experiments: %s", exp_ids)
 
-    pairs = load_pairs(root, split, direction)
-    pairs = subsample_pairs(pairs, cfg["subset-run-percentage"], cfg["subset-seed"])
+    pairs = load_pairs(cfg)
+    if not using_csv:
+        pairs = subsample_pairs(pairs, cfg["subset-run-percentage"], cfg["subset-seed"])
 
     vlm = init_vlm(cfg)
     sam_m, sam_p, dev = init_sam3(cfg)
@@ -614,8 +757,7 @@ def main():
     n = len(pairs)
     t0 = time.time()
 
-    for i, pair in enumerate(pairs):
-        meta = parse_pair(pair, root)
+    for i, meta in enumerate(pairs):
         uid = meta["take_uid"]
 
         logger.info(
@@ -624,7 +766,7 @@ def main():
         )
 
         if uid not in ann_cache:
-            ann_cache[uid] = load_annotation(root, uid)
+            ann_cache[uid] = load_annotation(cfg["root-data-directory"], uid)
 
         try:
             all_rows.extend(
@@ -653,7 +795,14 @@ def main():
         return
 
     df = pd.DataFrame(all_rows)
-    tag = f"{split}_{direction}_{cfg['vlm-model']}"
+    exp_tag = "_".join(exp_ids)
+
+    if using_csv:
+        tag = f"baseline_{exp_tag}"
+    else:
+        split = cfg["split"]
+        direction = cfg["direction"]
+        tag = f"{split}_{direction}_{exp_tag}"
 
     raw_path = f"results_{tag}.csv"
     df.to_csv(raw_path, index=False)
