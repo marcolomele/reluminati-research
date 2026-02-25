@@ -7,7 +7,7 @@
         "212ef398e5db428c848fcbc90a51cf58.sx9KEaYtS5B6GaYPpC9VkLGw"
     ],
     "huggingface-api-keys": [
-        "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"
+        "HUGGINGFACE_TOKEN_HERE"
     ],
 
     "vlm-model": "qwen3-vl:235b-cloud",
