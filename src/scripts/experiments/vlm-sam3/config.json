@@ -3,7 +3,8 @@
     "pairs-csv": "/data/video_datasets/3164542/lm_eec_pairs_from_vlm460850.csv",
 
     "vlm-api-keys": [
-        "5e3528983b8e412d9f58687d49a41b11.3LUyjZTbzgbBdrUkqD47y8wh"
+        "5e3528983b8e412d9f58687d49a41b11.3LUyjZTbzgbBdrUkqD47y8wh",
+        "212ef398e5db428c848fcbc90a51cf58.sx9KEaYtS5B6GaYPpC9VkLGw"
     ],
     "huggingface-api-keys": [
         "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"
