@@ -365,7 +365,7 @@ def build_images_for_token(token, src_rgb, src_mask, dst_rgb, ann, take_uid, obj
 
 
 def init_vlm(cfg):
-    """Initialize the Ollama VLM client."""
+    """Initialize the Ollama cloud VLM client."""
     keys = get_api_keys(cfg, "vlm-api-keys", "vlm-api-key", "Ollama")
     logger.info("Loaded %d Ollama API key(s).", len(keys))
     return {
@@ -375,6 +375,16 @@ def init_vlm(cfg):
             host="https://ollama.com",
             headers={"Authorization": f"Bearer {keys[0]}"},
         ),
+    }
+
+
+def init_local_vlm(base_url):
+    """Initialize a local Ollama client (no auth required)."""
+    logger.info("Initializing local Ollama client at %s", base_url)
+    return {
+        "keys": ["local"],
+        "idx": 0,
+        "client": Client(host=base_url),
     }
 
 
@@ -623,7 +633,7 @@ def _should_reprompt(
     return reprompt, reason, growth, dx_ratio, dy_ratio
 
 
-def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
+def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache, vlm_clients=None):
     """
     Run all config-defined experiments for one pair and return a list of result dicts.
     """
@@ -693,7 +703,13 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
                     token, src_rgb, src_mask, dst_rgb, ann, take_uid, obj, src_cam, root_dir, exp_frames
                 )
             ]
-            caption = vlm_caption(vlm, exp_model, images_b64, exp_prompt, num_predict=exp_predict)
+            exp_base_url = exp_cfg.get("vlm_base_url")
+            active_vlm = (
+                vlm_clients[exp_base_url]
+                if exp_base_url and vlm_clients and exp_base_url in vlm_clients
+                else vlm
+            )
+            caption = vlm_caption(active_vlm, exp_model, images_b64, exp_prompt, num_predict=exp_predict)
             prev_best_area = 0 if cache_entry is None else cache_entry["best_src_mask_area"]
             caption_cache[cache_key] = {
                 "best_src_mask_area": max(prev_best_area, src_mask_area),
@@ -771,6 +787,12 @@ def main():
         logger.info("Pairs sorted by stream for video-window experiments.")
 
     vlm = init_vlm(cfg)
+    # Build per-base-url clients for any experiments using a local Ollama server.
+    vlm_clients = {}
+    for exp_cfg in cfg["experiments"]:
+        base_url = exp_cfg.get("vlm_base_url")
+        if base_url and base_url not in vlm_clients:
+            vlm_clients[base_url] = init_local_vlm(base_url)
     sam_m, sam_p, dev = init_sam3(cfg)
 
     ann_cache = {}
@@ -801,6 +823,7 @@ def main():
                     dev,
                     ann_cache[uid],
                     caption_cache,
+                    vlm_clients=vlm_clients,
                 )
             )
         except Exception as e:
