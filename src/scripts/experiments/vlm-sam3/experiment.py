@@ -2,9 +2,12 @@
 Experiment pipeline for evaluating VLM + SAM3 object correspondence.
 
 Runs three ablation experiments per (source, destination) pair:
-  EXP-A:  source image with mask overlay only
-  EXP-B:  clean source image + source image with mask overlay
-  EXP-C:  clean source image + source image with mask overlay + destination image
+  EXP-A:  source image with marked object only (mask overlay or bbox)
+  EXP-B:  clean source image + source image with marked object
+  EXP-C:  clean source image + source image with marked object + destination image
+
+The marking type (mask overlay or bounding box) is controlled by the 
+"visualization-mode" config option ("mask" or "bbox").
 
 Usage:
     python experiment.py --config config.json
@@ -171,7 +174,7 @@ def get_mask(ann, obj, cam, frame):
 # ─── Image Helpers ───────────────────────────────────────────────────────────
 
 
-def create_overlay(img_path, mask_np, alpha=0.5):
+def create_overlay(img_path, mask_np, alpha=0.3):
     """Return a PIL Image with a red overlay on the masked region."""
     img = Image.open(img_path).convert("RGB")
     w, h = img.size
@@ -186,6 +189,30 @@ def create_overlay(img_path, mask_np, alpha=0.5):
     red[:] = [255, 0, 0]
     m = mask_np == 1
     arr[m] = (arr[m] * (1 - alpha) + red[m] * alpha).astype(np.uint8)
+    return Image.fromarray(arr)
+
+
+def create_bounding_box(img_path, mask_np, color=(255, 0, 0), thickness=2):
+    """Return a PIL Image with a bounding box drawn around the masked region."""
+    img = Image.open(img_path).convert("RGB")
+    w, h = img.size
+
+    if mask_np.shape[0] != h or mask_np.shape[1] != w:
+        mask_np = cv2.resize(
+            mask_np.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST
+        ).astype(bool)
+
+    # Find bounding box coordinates
+    coords = np.argwhere(mask_np)
+    if len(coords) == 0:
+        return img  # Return original image if mask is empty
+    
+    y_min, x_min = coords.min(axis=0)
+    y_max, x_max = coords.max(axis=0)
+    
+    # Draw rectangle on image
+    arr = np.array(img)
+    cv2.rectangle(arr, (x_min, y_min), (x_max, y_max), color, thickness)
     return Image.fromarray(arr)
 
 
@@ -517,15 +544,27 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
 
     model_name = cfg["vlm-model"]
     if reprompt:
-        overlay_img = create_overlay(src_rgb, src_mask)
-        overlay_b64 = pil_to_b64(overlay_img)
+        # Choose visualization method based on config
+        viz_mode = cfg.get("visualization-mode", "mask")
+        if viz_mode == "bbox":
+            marked_img = create_bounding_box(src_rgb, src_mask)
+            prompt_a = cfg["prompt-exp-a-bbox"]
+            prompt_b = cfg["prompt-exp-b-bbox"]
+            prompt_c = cfg["prompt-exp-c-bbox"]
+        else:  # default to mask
+            marked_img = create_overlay(src_rgb, src_mask)
+            prompt_a = cfg["prompt-exp-a"]
+            prompt_b = cfg["prompt-exp-b"]
+            prompt_c = cfg["prompt-exp-c"]
+        
+        marked_b64 = pil_to_b64(marked_img)
         src_b64 = file_to_b64(src_rgb)
         dst_b64 = file_to_b64(dst_rgb)
 
         exp_spec = {
-            "EXP-A": {"images": [overlay_b64], "prompt": cfg["prompt-exp-a"]},
-            "EXP-B": {"images": [src_b64, overlay_b64], "prompt": cfg["prompt-exp-b"]},
-            "EXP-C": {"images": [src_b64, overlay_b64, dst_b64], "prompt": cfg["prompt-exp-c"]},
+            "EXP-A": {"images": [marked_b64], "prompt": prompt_a},
+            "EXP-B": {"images": [src_b64, marked_b64], "prompt": prompt_b},
+            "EXP-C": {"images": [src_b64, marked_b64, dst_b64], "prompt": prompt_c},
         }
         captions = {
             exp_id: vlm_caption(vlm, model_name, exp_spec[exp_id]["images"], exp_spec[exp_id]["prompt"])

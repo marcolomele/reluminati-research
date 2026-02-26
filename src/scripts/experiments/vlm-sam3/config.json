@@ -11,9 +11,15 @@
     "vlm-model": "qwen3-vl:235b-cloud",
     "huggingface-model": "facebook/sam3",
 
+    "visualization-mode": "mask",
+
     "prompt-exp-a": "Image = masked image with artificial red overlay. Identify the object under the red overlay and describe its true color. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text.",
     "prompt-exp-b": "First image = original image with true colors. Second image = masked image with artificial red overlay. Use second image to know which object is selected. Use first image to determine the true color. Do NOT say red unless the object is actually red in the first image. Answer with: {color} {object_name}. No extra text.",
     "prompt-exp-c": "First image = source image with true colors. Second image = source image with artificial red overlay showing selected object. Third image = destination image from different viewpoint. Use second image to identify which object is selected. Use first and third images to understand spatial context and true appearance. Locate the same object in the third image. Do NOT say red unless the object is actually red in first or third image. Answer with: {color} {object_name}. No extra text.",
+
+    "prompt-exp-a-bbox": "Image shows an object marked with a red bounding box. Identify the object inside the bounding box and describe its true color. Answer with: {color} {object_name}. No extra text.",
+    "prompt-exp-b-bbox": "First image = original image with true colors. Second image = same image with red bounding box around selected object. Use second image to identify which object is selected. Use first image to determine the true color and appearance. Answer with: {color} {object_name}. No extra text.",
+    "prompt-exp-c-bbox": "First image = source image with true colors. Second image = source image with red bounding box around selected object. Third image = destination image from different viewpoint. Use second image to identify which object is selected. Use first and third images to understand spatial context and true appearance. Locate the same object in the third image. Answer with: {color} {object_name}. No extra text.",
 
     "split": "train",
     "direction": "ego-exo",
