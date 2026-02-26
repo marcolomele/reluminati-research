@@ -2,12 +2,14 @@
 Experiment pipeline for evaluating VLM + SAM3 object correspondence.
 
 Runs three ablation experiments per (source, destination) pair:
-  EXP-A:  source image with marked object only (mask overlay or bbox)
-  EXP-B:  clean source image + source image with marked object
-  EXP-C:  clean source image + source image with marked object + destination image
+  EXP-A:  source image with marked object only
+  EXP-B:  reference image + source image with marked object
+  EXP-C:  reference image + source image with marked object + destination image
 
-The marking type (mask overlay or bounding box) is controlled by the 
-"visualization-mode" config option ("mask" or "bbox").
+Visualization modes controlled by "visualization-mode" config option:
+  - "mask": Uses mask overlay for marking (EXP-B/C use clean source as reference)
+  - "bbox": Uses bounding box for marking (EXP-B/C use clean source as reference)
+  - "mask-bbox": Uses both (EXP-A = mask, EXP-B/C use bbox as reference + mask)
 
 Usage:
     python experiment.py --config config.json
@@ -546,26 +548,45 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache):
     if reprompt:
         # Choose visualization method based on config
         viz_mode = cfg.get("visualization-mode", "mask")
+        dst_b64 = file_to_b64(dst_rgb)
+        
         if viz_mode == "bbox":
             marked_img = create_bounding_box(src_rgb, src_mask)
+            marked_b64 = pil_to_b64(marked_img)
+            src_b64 = file_to_b64(src_rgb)
             prompt_a = cfg["prompt-exp-a-bbox"]
             prompt_b = cfg["prompt-exp-b-bbox"]
             prompt_c = cfg["prompt-exp-c-bbox"]
+            exp_spec = {
+                "EXP-A": {"images": [marked_b64], "prompt": prompt_a},
+                "EXP-B": {"images": [src_b64, marked_b64], "prompt": prompt_b},
+                "EXP-C": {"images": [src_b64, marked_b64, dst_b64], "prompt": prompt_c},
+            }
+        elif viz_mode == "mask-bbox":
+            bbox_img = create_bounding_box(src_rgb, src_mask)
+            mask_img = create_overlay(src_rgb, src_mask)
+            bbox_b64 = pil_to_b64(bbox_img)
+            mask_b64 = pil_to_b64(mask_img)
+            prompt_a = cfg["prompt-exp-a-mask-bbox"]
+            prompt_b = cfg["prompt-exp-b-mask-bbox"]
+            prompt_c = cfg["prompt-exp-c-mask-bbox"]
+            exp_spec = {
+                "EXP-A": {"images": [mask_b64], "prompt": prompt_a},
+                "EXP-B": {"images": [bbox_b64, mask_b64], "prompt": prompt_b},
+                "EXP-C": {"images": [bbox_b64, mask_b64, dst_b64], "prompt": prompt_c},
+            }
         else:  # default to mask
             marked_img = create_overlay(src_rgb, src_mask)
+            marked_b64 = pil_to_b64(marked_img)
+            src_b64 = file_to_b64(src_rgb)
             prompt_a = cfg["prompt-exp-a"]
             prompt_b = cfg["prompt-exp-b"]
             prompt_c = cfg["prompt-exp-c"]
-        
-        marked_b64 = pil_to_b64(marked_img)
-        src_b64 = file_to_b64(src_rgb)
-        dst_b64 = file_to_b64(dst_rgb)
-
-        exp_spec = {
-            "EXP-A": {"images": [marked_b64], "prompt": prompt_a},
-            "EXP-B": {"images": [src_b64, marked_b64], "prompt": prompt_b},
-            "EXP-C": {"images": [src_b64, marked_b64, dst_b64], "prompt": prompt_c},
-        }
+            exp_spec = {
+                "EXP-A": {"images": [marked_b64], "prompt": prompt_a},
+                "EXP-B": {"images": [src_b64, marked_b64], "prompt": prompt_b},
+                "EXP-C": {"images": [src_b64, marked_b64, dst_b64], "prompt": prompt_c},
+            }
         captions = {
             exp_id: vlm_caption(vlm, model_name, exp_spec[exp_id]["images"], exp_spec[exp_id]["prompt"])
             for exp_id in EXPERIMENTS

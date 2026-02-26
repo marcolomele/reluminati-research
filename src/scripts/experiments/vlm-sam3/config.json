@@ -21,6 +21,10 @@
     "prompt-exp-b-bbox": "First image = original image with true colors. Second image = same image with red bounding box around selected object. Use second image to identify which object is selected. Use first image to determine the true color and appearance. Answer with: {color} {object_name}. No extra text.",
     "prompt-exp-c-bbox": "First image = source image with true colors. Second image = source image with red bounding box around selected object. Third image = destination image from different viewpoint. Use second image to identify which object is selected. Use first and third images to understand spatial context and true appearance. Locate the same object in the third image. Answer with: {color} {object_name}. No extra text.",
 
+    "prompt-exp-a-mask-bbox": "Image = masked image with artificial red overlay. Identify the object under the red overlay and describe its true color. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text.",
+    "prompt-exp-b-mask-bbox": "First image = source image with red bounding box around selected object. Second image = same scene with red mask overlay on the object. Use both images to identify the object. The bounding box shows location, the mask shows exact shape. Describe the object's true color. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text.",
+    "prompt-exp-c-mask-bbox": "First image = source image with red bounding box around selected object. Second image = source with red mask overlay on the object. Third image = destination from different viewpoint. Use first two images to identify the selected object (bounding box shows location, mask shows exact shape). Locate the same object in the third image. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text.",
+
     "split": "train",
     "direction": "ego-exo",
     "subset-run-percentage": 0.01,
