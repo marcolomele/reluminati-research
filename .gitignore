@@ -1,5 +1,7 @@
-keys/
+local_misc/
 
+keys/
+.cursor/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -7,7 +9,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+*json
 # specific conversion scripts
 src/scripts/data/convert_names_to_uids.py
 src/scripts/data/rename_dirs_to_uids.py
