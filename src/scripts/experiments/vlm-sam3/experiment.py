@@ -18,6 +18,7 @@ Usage:
 
 import argparse
 import base64
+import glob
 import io
 import json
 import logging
@@ -47,6 +48,10 @@ logger = logging.getLogger(__name__)
 SAVE_INTERVAL = 50
 DEFAULT_VLM_REPROMPT_GROWTH_THRESHOLD = 0.20
 DEFAULT_VLM_REPROMPT_MOVEMENT_THRESHOLD = 0.20
+
+# Use SLURM job ID as the output filename so each run has its own file.
+# Falls back to "local" when running outside SLURM.
+JOB_ID = os.environ.get("SLURM_JOB_ID", "local")
 
 
 # ─── Configuration ───────────────────────────────────────────────────────────
@@ -799,28 +804,35 @@ def main():
     caption_cache = {}
     all_rows = []
 
-    # Resume: load already-completed (take_uid, object_name, src_camera, dest_camera, frame)
-    # tuples from an existing checkpoint so we can skip re-running finished pairs.
+    # Resume: scan ALL results_*.csv files in the working directory to find
+    # pairs already completed across any previous or current job runs.
     done_pairs = set()
-    checkpoint_path = "results_partial.csv"
-    if os.path.exists(checkpoint_path):
+    checkpoint_path = f"results_{JOB_ID}.csv"
+    existing_csvs = sorted(glob.glob("results_*.csv"))
+    if existing_csvs:
         try:
-            done_df = pd.read_csv(checkpoint_path, dtype=str)
-            key_cols = ["take_uid", "object_name", "src_camera", "dest_camera", "frame"]
-            if all(c in done_df.columns for c in key_cols + ["experiment"]):
-                done_pairs_exps = done_df.groupby(key_cols)["experiment"].apply(set).to_dict()
-                # A pair is fully done if all configured experiments have a result for it.
-                all_exp_ids = set(exp_ids)
-                for key, exps in done_pairs_exps.items():
-                    if all_exp_ids <= exps:
-                        done_pairs.add(key)
-                all_rows = done_df.to_dict("records")
-                logger.info(
-                    "Resuming: %d pairs already done (loaded %d rows from checkpoint).",
-                    len(done_pairs), len(all_rows),
-                )
+            frames = []
+            for p in existing_csvs:
+                try:
+                    frames.append(pd.read_csv(p, dtype=str))
+                except Exception as e:
+                    logger.warning("Skipping unreadable checkpoint %s: %s", p, e)
+            if frames:
+                done_df = pd.concat(frames, ignore_index=True).drop_duplicates()
+                key_cols = ["take_uid", "object_name", "src_camera", "dest_camera", "frame"]
+                if all(c in done_df.columns for c in key_cols + ["experiment"]):
+                    done_pairs_exps = done_df.groupby(key_cols)["experiment"].apply(set).to_dict()
+                    all_exp_ids = set(exp_ids)
+                    for key, exps in done_pairs_exps.items():
+                        if all_exp_ids <= exps:
+                            done_pairs.add(key)
+                    all_rows = done_df.to_dict("records")
+                    logger.info(
+                        "Resuming from %d file(s): %d pairs already done (%d rows loaded).",
+                        len(existing_csvs), len(done_pairs), len(all_rows),
+                    )
         except Exception as e:
-            logger.warning("Could not load checkpoint for resume: %s", e)
+            logger.warning("Could not load checkpoints for resume: %s", e)
 
     # dst_camera in meta corresponds to dest_camera in results CSV
     pairs = [
@@ -862,31 +874,23 @@ def main():
             logger.error("Pair %d failed: %s", i + 1, e)
 
         if (i + 1) % SAVE_INTERVAL == 0 and all_rows:
-            pd.DataFrame(all_rows).to_csv("results_partial.csv", index=False)
+            pd.DataFrame(all_rows).to_csv(checkpoint_path, index=False)
             elapsed = time.time() - t0
             eta = elapsed / (i + 1) * (n - i - 1)
-            logger.info("Checkpoint saved (%d rows). ETA %.0fs", len(all_rows), eta)
+            logger.info("Checkpoint saved → %s (%d rows). ETA %.0fs", checkpoint_path, len(all_rows), eta)
 
     if not all_rows:
         logger.warning("No results collected.")
         return
 
     df = pd.DataFrame(all_rows)
-    exp_tag = "_".join(exp_ids)
 
-    if using_csv:
-        tag = f"baseline_{exp_tag}"
-    else:
-        split = cfg["split"]
-        direction = cfg["direction"]
-        tag = f"{split}_{direction}_{exp_tag}"
-
-    raw_path = f"results_{tag}.csv"
-    df.to_csv(raw_path, index=False)
-    logger.info("Raw results → %s", raw_path)
+    # Final write — same file used for checkpointing (results_{JOB_ID}.csv)
+    df.to_csv(checkpoint_path, index=False)
+    logger.info("Final results → %s", checkpoint_path)
 
     summary = df.groupby("experiment")[["iou", "ba", "ca", "le"]].mean()
-    summary_path = f"summary_{tag}.csv"
+    summary_path = f"summary_{JOB_ID}.csv"
     summary.to_csv(summary_path)
     logger.info("Summary → %s", summary_path)
 
