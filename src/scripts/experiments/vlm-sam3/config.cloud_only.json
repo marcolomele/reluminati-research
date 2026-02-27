@@ -1,0 +1,126 @@
+{
+  "root-data-directory": "/data/video_datasets/3321908/output_dir_all/",
+  "pairs-csv": "/data/video_datasets/3164542/lm_eec_pairs_multiframe_w10.csv",
+  "vlm-api-keys": [
+    "5e3528983b8e412d9f58687d49a41b11.3LUyjZTbzgbBdrUkqD47y8wh",
+    "212ef398e5db428c848fcbc90a51cf58.sx9KEaYtS5B6GaYPpC9VkLGw",
+    "4b982449bfa449f181364fd1cbad54ce.xGlLXtc5BJIixWOL0MkwqU76"
+  ],
+  "huggingface-api-keys": [
+    "HUGGINGFACE_TOKEN_HERE"
+  ],
+  "vlm-model": "qwen3-vl:235b-cloud",
+  "huggingface-model": "facebook/sam3",
+  "split": "train",
+  "direction": "ego-exo",
+  "subset-run-percentage": 0.01,
+  "subset-seed": 42,
+  "prompts": {
+    "overlay-only": "Image = masked image with artificial red overlay. Identify the object under the red overlay and describe its true color. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text.",
+    "clean-and-overlay": "First image = original image with true colors. Second image = masked image with artificial red overlay. Use second image to know which object is selected. Use first image to determine the true color. Do NOT say red unless the object is actually red in the first image. Answer with: {color} {object_name}. No extra text.",
+    "clean-overlay-dst": "First image = source image with true colors. Second image = source image with artificial red overlay showing selected object. Third image = destination image from different viewpoint. Use second image to identify which object is selected. Use first and third images to understand spatial context and true appearance. Locate the same object in the third image. Do NOT say red unless the object is actually red in first or third image. Answer with: {color} {object_name}. No extra text.",
+    "bbox-describe": "A red rectangle marks the target object. Identify it and its true color. Answer with: {color} {object_name}. No extra text.",
+    "crop-describe": "This cropped image shows a single object. Identify it and its true color. Answer with: {color} {object_name}. No extra text.",
+    "multiframe-overlay": "You are shown several frames of the same scene. In each frame the target object has a red overlay. Using all frames, identify the object and its true color. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text."
+  },
+  "experiments": [
+    {
+      "id": "EXP-A",
+      "images": [
+        "src_overlay"
+      ],
+      "prompt": "overlay-only",
+      "vlm_model": "qwen3-vl:235b-cloud",
+      "num_predict": 32
+    },
+    {
+      "id": "EXP-B",
+      "images": [
+        "src_clean",
+        "src_overlay"
+      ],
+      "prompt": "clean-and-overlay",
+      "vlm_model": "qwen3-vl:235b-cloud",
+      "num_predict": 32
+    },
+    {
+      "id": "EXP-C",
+      "images": [
+        "src_clean",
+        "src_overlay",
+        "dst"
+      ],
+      "prompt": "clean-overlay-dst",
+      "vlm_model": "qwen3-vl:235b-cloud",
+      "num_predict": 32
+    },
+    {
+      "id": "EXP-D-bbox",
+      "images": [
+        "src_bbox"
+      ],
+      "prompt": "bbox-describe",
+      "vlm_model": "qwen3-vl:235b-cloud",
+      "num_predict": 32
+    },
+    {
+      "id": "EXP-E-crop",
+      "images": [
+        "src_crop"
+      ],
+      "prompt": "crop-describe",
+      "vlm_model": "qwen3-vl:235b-cloud",
+      "num_predict": 32
+    },
+    {
+      "id": "EXP-F-mf5",
+      "images": [
+        "src_overlay"
+      ],
+      "prompt": "multiframe-overlay",
+      "vlm_model": "qwen3-vl:235b-cloud",
+      "num_predict": 32,
+      "num_frames": 5
+    },
+    {
+      "id": "EXP-A-cot",
+      "images": [
+        "src_overlay"
+      ],
+      "prompt": "overlay-only",
+      "vlm_model": "qwen3-vl:235b-instruct-cloud",
+      "num_predict": 512
+    },
+    {
+      "id": "EXP-C-cot",
+      "images": [
+        "src_clean",
+        "src_overlay",
+        "dst"
+      ],
+      "prompt": "clean-overlay-dst",
+      "vlm_model": "qwen3-vl:235b-instruct-cloud",
+      "num_predict": 512
+    },
+    {
+      "id": "EXP-A-vw5",
+      "images": [
+        "src_overlay"
+      ],
+      "prompt": "overlay-only",
+      "vlm_model": "qwen3-vl:235b-cloud",
+      "num_predict": 32,
+      "video_window": 5
+    },
+    {
+      "id": "EXP-A-vw10",
+      "images": [
+        "src_overlay"
+      ],
+      "prompt": "overlay-only",
+      "vlm_model": "qwen3-vl:235b-cloud",
+      "num_predict": 32,
+      "video_window": 10
+    }
+  ]
+}

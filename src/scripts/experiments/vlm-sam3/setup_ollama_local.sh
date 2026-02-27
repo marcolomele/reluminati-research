@@ -16,32 +16,42 @@ OLLAMA_BIN="$HOME/.local/bin/ollama"
 if [ -x "$OLLAMA_BIN" ]; then
     echo "[OK] Ollama already installed at $OLLAMA_BIN"
 else
-    echo "Installing Ollama to $HOME/.local ..."
+    echo "Downloading Ollama binary ..."
     mkdir -p "$HOME/.local/bin"
-    curl -fsSL https://ollama.com/install.sh | OLLAMA_INSTALL_DIR="$HOME/.local" sh
-    echo "[OK] Ollama installed."
+    OLLAMA_VERSION=$(curl -s https://api.github.com/repos/ollama/ollama/releases/latest \
+        | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
+    TARBALL_URL="https://github.com/ollama/ollama/releases/download/${OLLAMA_VERSION}/ollama-linux-amd64.tar.zst"
+    TMP_TAR=$(mktemp /tmp/ollama-XXXX.tar.zst)
+    curl -fL "$TARBALL_URL" -o "$TMP_TAR"
+    # Extract just the ollama binary (it lives at bin/ollama inside the archive)
+    tar --zstd -xf "$TMP_TAR" -C "$HOME/.local" bin/ollama
+    rm -f "$TMP_TAR"
+    echo "[OK] Ollama ${OLLAMA_VERSION} installed at $OLLAMA_BIN"
 fi
 
 # ── 2. Create model storage dir ──────────────────────────────────────────────
 mkdir -p "$OLLAMA_MODELS_DIR"
 echo "Model storage: $OLLAMA_MODELS_DIR"
 
-# ── 3. Start a temporary Ollama server to pull models ────────────────────────
+# ── 3. Start a temporary Ollama server on port 11435 to avoid conflict with
+#       any shared server already running on the default port 11434 ───────────
 export OLLAMA_MODELS="$OLLAMA_MODELS_DIR"
+export OLLAMA_HOST="http://localhost:11435"
 "$OLLAMA_BIN" serve &
 OLLAMA_PID=$!
 sleep 5
-echo "Ollama server running (PID $OLLAMA_PID)"
+echo "Ollama server running on :11435 (PID $OLLAMA_PID)"
 
-# ── 4. Pull models ───────────────────────────────────────────────────────────
+# ── 4. Pull models (OLLAMA_HOST directs pull to OUR server on :11435) ────────
 echo "Pulling qwen3-vl:8b  (~6 GB) ..."
-OLLAMA_MODELS="$OLLAMA_MODELS_DIR" "$OLLAMA_BIN" pull qwen3-vl:8b
+OLLAMA_HOST="http://localhost:11435" OLLAMA_MODELS="$OLLAMA_MODELS_DIR" "$OLLAMA_BIN" pull qwen3-vl:8b
 
 echo "Pulling qwen3-vl:32b (~21 GB) ..."
-OLLAMA_MODELS="$OLLAMA_MODELS_DIR" "$OLLAMA_BIN" pull qwen3-vl:32b
+OLLAMA_HOST="http://localhost:11435" OLLAMA_MODELS="$OLLAMA_MODELS_DIR" "$OLLAMA_BIN" pull qwen3-vl:32b
 
 # ── 5. Stop temporary server ─────────────────────────────────────────────────
 kill "$OLLAMA_PID" 2>/dev/null || true
+unset OLLAMA_HOST
 echo ""
 echo "===== Setup complete ====="
 echo "Models stored in: $OLLAMA_MODELS_DIR"

@@ -4,7 +4,8 @@
 
     "vlm-api-keys": [
         "5e3528983b8e412d9f58687d49a41b11.3LUyjZTbzgbBdrUkqD47y8wh",
-        "212ef398e5db428c848fcbc90a51cf58.sx9KEaYtS5B6GaYPpC9VkLGw"
+        "212ef398e5db428c848fcbc90a51cf58.sx9KEaYtS5B6GaYPpC9VkLGw",
+        "4b982449bfa449f181364fd1cbad54ce.xGlLXtc5BJIixWOL0MkwqU76"
     ],
     "huggingface-api-keys": [
         "HUGGINGFACE_TOKEN_HERE"
@@ -35,11 +36,8 @@
         { "id": "EXP-E-crop", "images": ["src_crop"],                         "prompt": "crop-describe",      "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32 },
         { "id": "EXP-F-mf5",  "images": ["src_overlay"],                      "prompt": "multiframe-overlay", "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32, "num_frames": 5 },
 
-        { "id": "EXP-A-32b",  "images": ["src_overlay"],                     "prompt": "overlay-only",       "vlm_model": "qwen3-vl:32b-cloud",  "num_predict": 32 },
-        { "id": "EXP-A-8b",   "images": ["src_overlay"],                     "prompt": "overlay-only",       "vlm_model": "qwen3-vl:8b-cloud",   "num_predict": 32 },
-
-        { "id": "EXP-C-32b",  "images": ["src_clean", "src_overlay", "dst"], "prompt": "clean-overlay-dst",  "vlm_model": "qwen3-vl:32b-cloud",  "num_predict": 32 },
-        { "id": "EXP-C-8b",   "images": ["src_clean", "src_overlay", "dst"], "prompt": "clean-overlay-dst",  "vlm_model": "qwen3-vl:8b-cloud",   "num_predict": 32 },
+        { "id": "EXP-A-cot",  "images": ["src_overlay"],                     "prompt": "overlay-only",       "vlm_model": "qwen3-vl:235b-instruct-cloud", "num_predict": 512 },
+        { "id": "EXP-C-cot",  "images": ["src_clean", "src_overlay", "dst"], "prompt": "clean-overlay-dst",  "vlm_model": "qwen3-vl:235b-instruct-cloud", "num_predict": 512 },
 
         { "id": "EXP-A-vw5",  "images": ["src_overlay"],                     "prompt": "overlay-only",       "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32, "video_window": 5  },
         { "id": "EXP-A-vw10", "images": ["src_overlay"],                     "prompt": "overlay-only",       "vlm_model": "qwen3-vl:235b-cloud", "num_predict": 32, "video_window": 10 }

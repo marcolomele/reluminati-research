@@ -798,6 +798,38 @@ def main():
     ann_cache = {}
     caption_cache = {}
     all_rows = []
+
+    # Resume: load already-completed (take_uid, object_name, src_camera, dest_camera, frame)
+    # tuples from an existing checkpoint so we can skip re-running finished pairs.
+    done_pairs = set()
+    checkpoint_path = "results_partial.csv"
+    if os.path.exists(checkpoint_path):
+        try:
+            done_df = pd.read_csv(checkpoint_path, dtype=str)
+            key_cols = ["take_uid", "object_name", "src_camera", "dest_camera", "frame"]
+            if all(c in done_df.columns for c in key_cols + ["experiment"]):
+                done_pairs_exps = done_df.groupby(key_cols)["experiment"].apply(set).to_dict()
+                # A pair is fully done if all configured experiments have a result for it.
+                all_exp_ids = set(exp_ids)
+                for key, exps in done_pairs_exps.items():
+                    if all_exp_ids <= exps:
+                        done_pairs.add(key)
+                all_rows = done_df.to_dict("records")
+                logger.info(
+                    "Resuming: %d pairs already done (loaded %d rows from checkpoint).",
+                    len(done_pairs), len(all_rows),
+                )
+        except Exception as e:
+            logger.warning("Could not load checkpoint for resume: %s", e)
+
+    # dst_camera in meta corresponds to dest_camera in results CSV
+    pairs = [
+        m for m in pairs
+        if (m["take_uid"], m["object_name"], m["src_camera"], m["dst_camera"], m["frame"])
+        not in done_pairs
+    ]
+    logger.info("%d pairs remaining to process.", len(pairs))
+
     n = len(pairs)
     t0 = time.time()
 
