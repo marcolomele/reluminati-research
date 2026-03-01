@@ -310,12 +310,18 @@ def file_to_b64(path):
         return base64.b64encode(f.read()).decode()
 
 
-def sample_source_frames(ann, obj, cam, n_frames, take_uid, root_dir):
+def sample_source_frames(ann, obj, cam, n_frames, take_uid, root_dir, current_frame=None):
     """
-    Return n_frames evenly spaced (img_path, mask_np) tuples for a source stream.
+    Return n_frames (img_path, mask_np) tuples for a source stream.
 
-    Frame IDs are taken from annotation, sorted numerically. Missing files are
-    silently skipped.
+    When current_frame is provided, selects the n_frames annotated frames
+    immediately PRECEDING (and including) current_frame, giving the VLM
+    genuine temporal context for the current query.
+
+    Falls back to evenly-spaced sampling across the whole video only when
+    current_frame is None — this is intentionally avoided for multi-frame
+    experiments because random video-wide sampling produces semantically
+    unrelated frames that confuse the model.
     """
     try:
         all_frame_ids = sorted(ann["masks"][obj][cam].keys(), key=lambda x: int(x))
@@ -323,10 +329,21 @@ def sample_source_frames(ann, obj, cam, n_frames, take_uid, root_dir):
         return []
     if not all_frame_ids:
         return []
-    indices = np.linspace(0, len(all_frame_ids) - 1, n_frames, dtype=int)
+
+    if current_frame is not None:
+        current_int = int(current_frame)
+        # Keep only frames up to and including the current one
+        preceding = [f for f in all_frame_ids if int(f) <= current_int]
+        if not preceding:
+            preceding = all_frame_ids[:n_frames]  # edge case: current before all annotations
+        frame_ids_to_use = preceding[-n_frames:]   # take the last n (most recent)
+    else:
+        # Legacy fallback — evenly spaced across the full video
+        indices = np.linspace(0, len(all_frame_ids) - 1, n_frames, dtype=int)
+        frame_ids_to_use = [all_frame_ids[i] for i in indices]
+
     result = []
-    for idx in indices:
-        fid = all_frame_ids[idx]
+    for fid in frame_ids_to_use:
         img_path = os.path.join(root_dir, take_uid, cam, fid)
         try:
             img_path = resolve_img(img_path)
@@ -338,22 +355,26 @@ def sample_source_frames(ann, obj, cam, n_frames, take_uid, root_dir):
     return result
 
 
-def build_images_for_token(token, src_rgb, src_mask, dst_rgb, ann, take_uid, obj, src_cam, root_dir, num_frames):
+def build_images_for_token(token, src_rgb, src_mask, dst_rgb, ann, take_uid, obj, src_cam, root_dir, num_frames, current_frame=None):
     """
     Dispatch on token and return a list of base64-encoded image strings.
 
     Multi-frame tokens (src_overlay, src_clean) return num_frames images when
     num_frames > 1; single-frame tokens (src_bbox, src_crop, dst) always return
     exactly one image.
+
+    current_frame must be passed for multi-frame tokens so that
+    sample_source_frames can select frames preceding the current query,
+    not random frames from across the whole video.
     """
     if token == "src_overlay":
         if num_frames > 1:
-            frames = sample_source_frames(ann, obj, src_cam, num_frames, take_uid, root_dir)
+            frames = sample_source_frames(ann, obj, src_cam, num_frames, take_uid, root_dir, current_frame=current_frame)
             return [pil_to_b64(create_overlay(fp, m)) for fp, m in frames]
         return [pil_to_b64(create_overlay(src_rgb, src_mask))]
     elif token == "src_clean":
         if num_frames > 1:
-            frames = sample_source_frames(ann, obj, src_cam, num_frames, take_uid, root_dir)
+            frames = sample_source_frames(ann, obj, src_cam, num_frames, take_uid, root_dir, current_frame=current_frame)
             return [file_to_b64(fp) for fp, _ in frames]
         return [file_to_b64(src_rgb)]
     elif token == "src_bbox":
@@ -749,7 +770,7 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache, vlm_clie
                 img
                 for token in exp_tokens
                 for img in build_images_for_token(
-                    token, src_rgb, src_mask, dst_rgb, ann, take_uid, obj, src_cam, root_dir, exp_frames
+                    token, src_rgb, src_mask, dst_rgb, ann, take_uid, obj, src_cam, root_dir, exp_frames, current_frame=frame
                 )
             ]
             exp_base_url = exp_cfg.get("vlm_base_url")
