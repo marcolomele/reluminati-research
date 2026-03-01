@@ -497,8 +497,52 @@ def init_sam3(cfg):
     ) from last_error
 
 
+_SAM3_MAX_TOKENS = 28  # SAM3 text encoder hard limit is 32 (incl. special tokens)
+
+def _prepare_sam3_text(text: str, proc) -> str:
+    """
+    Extract the core description from a (possibly long CoT) VLM output and
+    truncate to SAM3's token limit.
+
+    Strategy:
+      1. If the text contains a recognisable "final answer" marker, extract
+         just that phrase.
+      2. Otherwise take the last short (≤ 10 words) non-empty line.
+      3. Tokenise with the SAM3 processor and hard-truncate to _SAM3_MAX_TOKENS.
+    """
+    import re as _re
+
+    text = (text or "").strip()
+
+    # 1. Look for explicit "final answer" / "answer:" marker
+    m = _re.search(
+        r"(?:final\s+answer|answer)[:\s]+([^\n]{3,120})",
+        text, _re.IGNORECASE
+    )
+    if m:
+        text = m.group(1).strip().strip('"').strip("'")
+    else:
+        # 2. Take the last non-empty line that looks like a short description
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+        if lines:
+            # Prefer a short final line (≤ 12 words), otherwise fall back to full text
+            candidate = lines[-1]
+            # Strip leading numbering like "4." or "(4)"
+            candidate = _re.sub(r"^\s*[\d]+[.)]\s*", "", candidate).strip()
+            if len(candidate.split()) <= 12:
+                text = candidate
+
+    # 3. Tokenise and hard-truncate
+    token_ids = proc.tokenizer.encode(text, add_special_tokens=False)
+    if len(token_ids) > _SAM3_MAX_TOKENS:
+        text = proc.tokenizer.decode(token_ids[:_SAM3_MAX_TOKENS], skip_special_tokens=True)
+
+    return text
+
+
 def sam3_segment(model, proc, img_path, text_prompt, device):
     """Run text-prompted SAM3 segmentation and return post-processed results."""
+    text_prompt = _prepare_sam3_text(text_prompt, proc)
     img = Image.open(img_path).convert("RGB")
     inputs = proc(images=img, text=text_prompt, return_tensors="pt").to(device)
 
