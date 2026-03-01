@@ -30,6 +30,7 @@ Write a script called experiment.py that executes notebooks/VLM_SAM3_Experiments
     "huggingface-api-key" : "...", is the api of huggingface to access sam 3 model
     * "vlm-model" : "...", is the vlm model to use to generate descriptions, name must be exactly the name ollama expects to work,
     * "huggingface-model" : "...", is sam3 version, name must be exactly what huggingface api expects
+    * "visualization mode" allor to run tests given as the object identifier "mask", "bbox" or "mask-bbox"
     "vlm-prompt" : "...", is the promt for the vlm telling to identify the object highlighterd by the mask and provide a descrition
     * "direction" : "egoexo", indicates direction of correspndence, used for selection of pairs
     * "subset-run-percentage" : 0.1, parameter to reduce the number of pairs on which the exepriemnts are run, used to debug and do tests before final runs

@@ -1,0 +1,421 @@
+scenario,take_uid,tracked_object,camera,total_displacement
+basketball,058f9a7e-d7e8-415e-9827-272245422543,basketball,aria01_214-1,19057.56
+basketball,058f9a7e-d7e8-415e-9827-272245422543,basketball,cam01,29454.59
+basketball,058f9a7e-d7e8-415e-9827-272245422543,hoop,aria01_214-1,6403.5
+basketball,058f9a7e-d7e8-415e-9827-272245422543,hoop,cam01,411.23
+basketball,1789c39f-b302-48b4-9fa5-8716cfbfd43f,basketball,aria01_214-1,11713.75
+basketball,1789c39f-b302-48b4-9fa5-8716cfbfd43f,basketball,cam01,19681.4
+basketball,215844c3-63d3-4c8c-86f7-aeff2cf79764,basketball,aria01_214-1,19792.12
+basketball,215844c3-63d3-4c8c-86f7-aeff2cf79764,basketball,cam04,42546.63
+basketball,2f86293e-823d-4e2d-8c54-2f888e2639ed,basketball,aria01_214-1,10106.98
+basketball,2f86293e-823d-4e2d-8c54-2f888e2639ed,basketball,cam03,6420.73
+basketball,691b6dff-620e-4aab-8302-3a9045be33da,basketball,aria01_214-1,11290.03
+basketball,691b6dff-620e-4aab-8302-3a9045be33da,basketball,cam01,24592.99
+basketball,691b6dff-620e-4aab-8302-3a9045be33da,hoop,aria01_214-1,13510.1
+basketball,691b6dff-620e-4aab-8302-3a9045be33da,hoop,cam01,72.32
+basketball,83b0fc4f-9a36-4dd7-9495-a68c9f82defe,basketball,aria01_214-1,40302.05
+basketball,83b0fc4f-9a36-4dd7-9495-a68c9f82defe,basketball,cam01,61139.27
+basketball,83b0fc4f-9a36-4dd7-9495-a68c9f82defe,hoop,aria01_214-1,14288.43
+basketball,83b0fc4f-9a36-4dd7-9495-a68c9f82defe,hoop,cam04,201.79
+basketball,98895ed3-7fc5-4dc0-ae9b-d808971e9334,basketball,aria01_214-1,4713.29
+basketball,98895ed3-7fc5-4dc0-ae9b-d808971e9334,basketball,cam03,8575.9
+basketball,98895ed3-7fc5-4dc0-ae9b-d808971e9334,hoop,aria01_214-1,4004.62
+basketball,98895ed3-7fc5-4dc0-ae9b-d808971e9334,hoop,cam03,92.74
+basketball,ef2cad65-06b2-4b1a-8956-c387721d2051,basketball,aria01_214-1,7974.61
+basketball,ef2cad65-06b2-4b1a-8956-c387721d2051,basketball,cam03,7272.13
+basketball,ef2cad65-06b2-4b1a-8956-c387721d2051,hoop,aria01_214-1,3629.75
+basketball,ef2cad65-06b2-4b1a-8956-c387721d2051,hoop,cam03,142.6
+basketball,f5ced826-d8ef-42c6-8e6e-2ba287da99d4,basketball,aria01_214-1,7641.91
+basketball,f5ced826-d8ef-42c6-8e6e-2ba287da99d4,basketball,cam04,15024.61
+basketball,f5ced826-d8ef-42c6-8e6e-2ba287da99d4,hoop,aria01_214-1,4856.12
+basketball,f5ced826-d8ef-42c6-8e6e-2ba287da99d4,hoop,cam04,49.05
+basketball,fcb6b025-6e41-4e97-b4b5-d5fdf0ebd3cb,basketball,aria01_214-1,17768.53
+basketball,fcb6b025-6e41-4e97-b4b5-d5fdf0ebd3cb,basketball,cam03,32892.84
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Basket_0,aria07_214-1,8471.77
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Basket_0,cam04,2674.41
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Bicycle wheel_0,aria07_214-1,6286.34
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Bicycle wheel_0,cam04,5472.58
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Brake cable_1,aria07_214-1,8826.14
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Fork_0,aria07_214-1,4568.34
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Fork_0,cam04,2169.01
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Handlebar_0,aria07_214-1,6764.1
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Handlebar_0,cam04,1813.9
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Wrench_0,aria07_214-1,2579.23
+bike repair,181c0eb5-22da-4a00-ad59-37b67622012e,Wrench_0,cam04,6026.56
+bike repair,1bc1334f-2546-4175-a9f4-b4338f46a246,bike chain brush pack_0,aria01_214-1,10242.24
+bike repair,1bc1334f-2546-4175-a9f4-b4338f46a246,bike chain brush pack_1,aria01_214-1,8680.58
+bike repair,1bc1334f-2546-4175-a9f4-b4338f46a246,bike chain brush pack_1,cam01,0.0
+bike repair,1bc1334f-2546-4175-a9f4-b4338f46a246,blue liquid container_0,aria01_214-1,12836.54
+bike repair,1bc1334f-2546-4175-a9f4-b4338f46a246,water bottle_0,aria01_214-1,4404.61
+bike repair,1bc1334f-2546-4175-a9f4-b4338f46a246,water bottle_0,cam01,1925.8
+bike repair,5c322676-611b-424f-b00b-e825807dd1fc,bicycle wheel_0,aria02_214-1,10231.78
+bike repair,5c322676-611b-424f-b00b-e825807dd1fc,bicycle wheel_0,cam03,2297.62
+bike repair,5c322676-611b-424f-b00b-e825807dd1fc,bicycle_0,aria02_214-1,8926.18
+bike repair,5c322676-611b-424f-b00b-e825807dd1fc,bicycle_0,cam03,828.16
+bike repair,5c322676-611b-424f-b00b-e825807dd1fc,socket wrench_0,aria02_214-1,7973.45
+bike repair,5c322676-611b-424f-b00b-e825807dd1fc,socket wrench_0,cam04,4499.29
+bike repair,5c322676-611b-424f-b00b-e825807dd1fc,socket wrench_1,aria02_214-1,6125.91
+bike repair,5c322676-611b-424f-b00b-e825807dd1fc,socket wrench_1,cam04,4851.34
+bike repair,61b218b2-52fb-465f-855f-41e5164d7998,Bicycle Pump_0,aria01_214-1,20328.72
+bike repair,61b218b2-52fb-465f-855f-41e5164d7998,Bicycle Pump_0,cam01,4087.86
+bike repair,61b218b2-52fb-465f-855f-41e5164d7998,New Bicycle Tube Pack_0,aria01_214-1,3337.41
+bike repair,61b218b2-52fb-465f-855f-41e5164d7998,New Bicycle Tube Pack_0,cam01,1963.03
+bike repair,61b218b2-52fb-465f-855f-41e5164d7998,New Bicycle Tube_0,aria01_214-1,10350.54
+bike repair,61b218b2-52fb-465f-855f-41e5164d7998,New Tube Wrapper_0,aria01_214-1,4276.57
+bike repair,61b218b2-52fb-465f-855f-41e5164d7998,New Tube Wrapper_0,cam01,1602.33
+bike repair,661178ca-8174-4469-bf18-ca8d40c4d7b9,bicycle fork_0,aria01_214-1,8131.37
+bike repair,661178ca-8174-4469-bf18-ca8d40c4d7b9,bicycle fork_0,cam02,619.51
+bike repair,661178ca-8174-4469-bf18-ca8d40c4d7b9,bicycle repair stand_0,aria01_214-1,9998.37
+bike repair,661178ca-8174-4469-bf18-ca8d40c4d7b9,bicycle repair stand_0,cam02,577.04
+bike repair,661178ca-8174-4469-bf18-ca8d40c4d7b9,bicycle wheel_0,aria01_214-1,7704.99
+bike repair,661178ca-8174-4469-bf18-ca8d40c4d7b9,bicycle wheel_0,cam02,1662.21
+bike repair,661178ca-8174-4469-bf18-ca8d40c4d7b9,bicycle_0,aria01_214-1,11390.11
+bike repair,673f2b3e-413a-4450-aca8-ffbfb56db7be,bicycle tire tube_0,aria01_214-1,6211.52
+bike repair,673f2b3e-413a-4450-aca8-ffbfb56db7be,bicycle tire tube_0,cam01,5669.4
+bike repair,673f2b3e-413a-4450-aca8-ffbfb56db7be,tire pump_0,aria01_214-1,14961.83
+bike repair,673f2b3e-413a-4450-aca8-ffbfb56db7be,tire pump_0,cam01,2480.6
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,bicycle fork_0,aria01_214-1,1357.61
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,bicycle fork_0,cam04,546.49
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,bicycle grip_0,aria01_214-1,2848.25
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,bicycle grip_0,cam04,368.19
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,bicycle stand_0,aria01_214-1,3665.01
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,bicycle stand_0,cam04,47.62
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,bicycle wheel_0,aria01_214-1,1713.64
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,bicycle wheel_0,cam04,1908.09
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,black tools trolley_0,aria01_214-1,1510.69
+bike repair,6ba1dc31-7a08-4e92-aaad-5954bce6a7da,black tools trolley_0,cam04,1863.67
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,bicycle_chain_cleaning_brush_0,aria01_214-1,23230.58
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,bicycle_chain_cleaning_brush_0,cam01,372.25
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,bicycle_pedal_0,aria01_214-1,32538.88
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,bicycle_pedal_0,cam01,1695.6
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,steel_table_0,aria01_214-1,3212.84
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,steel_table_0,cam01,2894.19
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,water_bottle_0,aria01_214-1,2396.09
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,white_napkin_0,aria01_214-1,17659.98
+bike repair,83decc40-f9da-469a-9ce2-1d173b06e5b3,white_napkin_0,cam01,5849.03
+bike repair,a4b3be28-cc60-43f9-8158-0e098eb5aa82,Inner tube_0,aria03_214-1,10733.04
+bike repair,a4b3be28-cc60-43f9-8158-0e098eb5aa82,bicycle stand_0,aria03_214-1,20628.67
+bike repair,a4b3be28-cc60-43f9-8158-0e098eb5aa82,bicycle stand_0,cam03,832.66
+bike repair,a4b3be28-cc60-43f9-8158-0e098eb5aa82,bike chain_0,aria03_214-1,10455.51
+bike repair,a4b3be28-cc60-43f9-8158-0e098eb5aa82,blue and white toothbrush_0,aria03_214-1,16070.32
+bike repair,a4b3be28-cc60-43f9-8158-0e098eb5aa82,bottle water_0,aria03_214-1,16417.72
+bike repair,f72deca0-a765-46d3-abcd-9e4a0f7575d9,bicycle tube_0,aria02_214-1,7872.48
+bike repair,f72deca0-a765-46d3-abcd-9e4a0f7575d9,bicycle tube_0,cam03,3393.02
+bike repair,f72deca0-a765-46d3-abcd-9e4a0f7575d9,bicycle wheel_0,aria02_214-1,9525.81
+bike repair,f72deca0-a765-46d3-abcd-9e4a0f7575d9,bicycle wheel_0,cam03,3339.94
+bike repair,f72deca0-a765-46d3-abcd-9e4a0f7575d9,socket wrench_0,aria02_214-1,4416.21
+bike repair,f72deca0-a765-46d3-abcd-9e4a0f7575d9,socket wrench_0,cam03,3593.53
+bike repair,f72deca0-a765-46d3-abcd-9e4a0f7575d9,socket wrench_1,aria02_214-1,3706.4
+bike repair,f72deca0-a765-46d3-abcd-9e4a0f7575d9,socket wrench_1,cam01,3670.42
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,black_handle_knife_0,aria01_214-1,30416.15
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,black_handle_knife_0,gp01,4302.1
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,black_tea_package_0,aria01_214-1,6942.18
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,black_tea_package_0,gp04,645.22
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,black_tea_sachet_0,aria01_214-1,2260.24
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,black_tea_sachet_0,gp02,551.03
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,blue_chopping_board_0,aria01_214-1,36007.78
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,blue_chopping_board_0,gp03,7230.61
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,electric_kettle_0,aria01_214-1,33065.06
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,electric_kettle_0,gp03,9163.83
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,kitchen_paper_0,aria01_214-1,1294.97
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,kitchen_paper_0,gp01,2688.43
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,nonstick_pan_0,aria01_214-1,26498.25
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,nonstick_pan_0,gp03,2004.36
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,patterned mug_0,aria01_214-1,17326.66
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,patterned mug_0,gp02,3664.86
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,sesame- ginger_asian_salad_0,aria01_214-1,21612.5
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,sesame- ginger_asian_salad_0,gp01,116.66
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,stainless_spoon_0,aria01_214-1,14978.23
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,stainless_spoon_0,gp04,2127.78
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,white_bowl_0,aria01_214-1,21514.42
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,white_bowl_0,gp01,136.76
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,white_bowl_1,aria01_214-1,27935.28
+cooking,0efd9fc1-0f49-403d-9252-93f119a3ea3c,white_bowl_1,gp03,391.62
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,broken egg_0,aria01_214-1,12207.35
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,broken egg_0,cam01,0.0
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,chilli pepper container_0,aria01_214-1,34905.35
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,chilli pepper container_0,cam02,1337.64
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,egg container carrier _0,aria01_214-1,18933.8
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,egg omelet_0,aria01_214-1,1344.79
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,frying pan_0,aria01_214-1,25512.76
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,frying pan_0,cam02,3549.21
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,garlic container_0,aria01_214-1,25926.22
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,garlic container_0,cam02,1015.27
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,gas lighter_0,aria01_214-1,12870.88
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,gas lighter_0,cam02,3378.13
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,measuring spoon_0,aria01_214-1,610.25
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,measuring spoon_1,aria01_214-1,362.22
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,metal bowl_0,aria01_214-1,30858.28
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,metal bowl_0,cam02,6794.3
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,salt container_0,aria01_214-1,28420.49
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,salt container_0,cam02,1092.04
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,steel bowl_0,aria01_214-1,34949.73
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,steel dinner plate_0,aria01_214-1,5509.75
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,steel dinner plate_0,cam01,3327.32
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,turmeric container_0,aria01_214-1,31557.2
+cooking,1f541cce-f10b-4cd3-814f-8e2d527df8f5,turmeric container_0,cam02,4401.27
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,Steam food pan_0,aria02_214-1,13808.65
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,Steam food pan_0,cam01,303.5
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,bell pepper_0,aria02_214-1,26047.43
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,bell pepper_0,cam01,1759.24
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,celery_0,aria02_214-1,5297.82
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,celery_0,cam02,590.23
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,knife_0,aria02_214-1,26476.27
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,knife_0,cam01,9853.8
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,metallic bowl_0,aria02_214-1,36010.81
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,metallic bowl_0,cam01,4756.32
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,paper towel_0,aria02_214-1,37798.81
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,paper towel_0,cam01,2295.14
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,towel holder_0,aria02_214-1,25069.58
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,towel holder_0,cam01,4.38
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,white bowl_0,aria02_214-1,26952.88
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,white bowl_0,cam01,1115.81
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,wooden chopping board_0,aria02_214-1,27666.29
+cooking,5d4abe32-590d-470d-8fd1-4585833afaad,wooden chopping board_0,cam01,2439.55
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,black plastic bin_0,aria03_214-1,5229.43
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,carrot_0,aria03_214-1,40923.31
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,carrot_0,cam04,8591.55
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,celery_0,aria03_214-1,77695.29
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,chopped carrot_0,aria03_214-1,16167.22
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,chopped celery_0,aria03_214-1,690.25
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,chopped celery_0,cam04,391.61
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,clear plastic container_0,aria03_214-1,58702.77
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,clear plastic container_0,cam04,3399.18
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,paper towel_0,aria03_214-1,76080.81
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,sesame seed container_0,aria03_214-1,114767.1
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,soy sauce bottle_0,aria03_214-1,100311.05
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,stainless steel counter_0,aria03_214-1,72705.51
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,white ceramic plate_0,aria03_214-1,86920.72
+cooking,72fa7531-64a3-45fe-8e50-80906ffeb40a,white ceramic plate_0,cam04,5310.13
+cooking,75cc6a20-2451-4922-844b-3e376e095657,black handle scissors _0,aria02_214-1,14739.52
+cooking,75cc6a20-2451-4922-844b-3e376e095657,black handle scissors _0,cam02,1625.8
+cooking,75cc6a20-2451-4922-844b-3e376e095657,mesh strainer_0,aria02_214-1,46005.19
+cooking,75cc6a20-2451-4922-844b-3e376e095657,mesh strainer_0,cam02,3021.82
+cooking,75cc6a20-2451-4922-844b-3e376e095657,plastic waste bin_0,aria02_214-1,755.72
+cooking,75cc6a20-2451-4922-844b-3e376e095657,white mug_0,aria02_214-1,47179.85
+cooking,75cc6a20-2451-4922-844b-3e376e095657,white mug_0,cam04,2111.81
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,black knife_0,aria01_214-1,79009.59
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,black saucepan _0,aria01_214-1,88669.73
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,black saucepan _0,gp03,7359.09
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,celery package _0,aria01_214-1,4020.75
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,celery_0,aria01_214-1,1735.27
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,celery_0,gp02,2856.86
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,cooked noodles_0,aria01_214-1,1476.56
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,cooked noodles_0,gp04,1685.93
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,ginger package_0,aria01_214-1,61828.39
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,ginger package_0,gp03,1919.69
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,glass mug_0,aria01_214-1,86312.97
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,glass mug_0,gp04,1042.07
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,noodles package_0,aria01_214-1,40117.58
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,noodles package_1,aria01_214-1,34958.77
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,noodles package_1,gp03,2761.67
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,noodles_0,aria01_214-1,38170.16
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,noodles_0,gp03,3998.67
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,oil bottle_0,aria01_214-1,47053.79
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,onion package_0,aria01_214-1,2563.62
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,oyster sauce bottle_0,aria01_214-1,92912.1
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,oyster sauce bottle_0,gp03,2856.57
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,salt container _0,aria01_214-1,107111.66
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,salt container _0,gp02,3216.22
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,white bowl_0,aria01_214-1,35489.03
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,white bowl_0,gp01,2924.08
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,white bowl_1,aria01_214-1,5261.34
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,white bowl_1,gp01,2873.43
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,white electric kettle_0,aria01_214-1,58992.45
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,white electric kettle_0,gp02,13632.06
+cooking,8acb2112-465c-4088-b502-65fd9704dd77,white kitchen tongs_0,aria01_214-1,108310.21
+cooking,961e4bc4-8a41-4f0c-ba12-bc198b9b15f2,cucumber_0,aria01_214-1,452.46
+cooking,961e4bc4-8a41-4f0c-ba12-bc198b9b15f2,green knife_0,aria01_214-1,6018.0
+cooking,961e4bc4-8a41-4f0c-ba12-bc198b9b15f2,green knife_0,cam01,4523.33
+cooking,961e4bc4-8a41-4f0c-ba12-bc198b9b15f2,white bowl_0,aria01_214-1,5620.97
+cooking,961e4bc4-8a41-4f0c-ba12-bc198b9b15f2,white bowl_0,cam01,2100.95
+cooking,961e4bc4-8a41-4f0c-ba12-bc198b9b15f2,wooden chopping board_0,aria01_214-1,7381.25
+cooking,961e4bc4-8a41-4f0c-ba12-bc198b9b15f2,wooden chopping board_0,cam01,1542.37
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Chopping Board_0,aria01_214-1,32403.56
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Chopping Board_0,cam01,375.36
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Gas Lighter_0,aria01_214-1,30235.39
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Gas Lighter_0,cam01,1370.27
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Green Onion_0,aria01_214-1,9072.75
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Pasteurized Butter Pack_0,aria01_214-1,17538.19
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Pasteurized Butter Pack_0,cam01,401.09
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Pizza Blend Pack_0,aria01_214-1,24387.97
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Pizza Blend Pack_0,cam01,2882.13
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Skillet_0,aria01_214-1,29826.36
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Skillet_0,cam01,7170.32
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Sliced Tomato_0,aria01_214-1,31051.52
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Sliced Tomato_0,cam01,962.41
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Stainless Steel Bowl_0,aria01_214-1,35991.75
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Stainless Steel Bowl_0,cam01,3475.46
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Stainless Steel Flat Plate_0,aria01_214-1,14741.84
+cooking,96d772ac-01e0-4e53-85e5-4ce45e58b6f1,Stainless Steel Flat Plate_0,cam01,5778.02
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,bowl of milk_0,aria01_214-1,9340.53
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,bowl of milk_0,cam01,3648.15
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,cloth napkin_0,aria01_214-1,12396.75
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,cloth napkin_0,cam01,3420.87
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,plastic container of sugar_0,aria01_214-1,8237.1
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,plastic container of sugar_0,cam01,3132.58
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,plate_0,aria01_214-1,8398.0
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,plate_0,cam01,1317.78
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,saucepan_0,aria01_214-1,11554.19
+cooking,a0179553-bc47-441f-a83e-ae6e021032e0,saucepan_0,cam01,3548.95
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,chopping board_0,aria01_214-1,45190.03
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,egg carton_0,aria01_214-1,4454.41
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,egg carton_0,gp03,2171.95
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,kitchen knife_0,aria01_214-1,39027.11
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,kitchen knife_0,gp02,5768.0
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,kitchen paper_0,aria01_214-1,26702.73
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,kitchen paper_0,gp03,885.93
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,leek package_0,aria01_214-1,20048.23
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,leek package_0,gp01,368.2
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,nonstick frying pan_0,aria01_214-1,42215.48
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,nonstick frying pan_0,gp03,5649.63
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,scrambled egg_0,aria01_214-1,1280.43
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,scrambled egg_0,gp01,13.11
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,spaghetti tong_0,aria01_214-1,40305.7
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,spaghetti_0,aria01_214-1,16789.7
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,spaghetti_0,gp02,2905.4
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,stainless steel fork_0,aria01_214-1,16222.43
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,stainless steel fork_0,gp01,1744.02
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,white ceramic plate_0,aria01_214-1,16650.04
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,white cereal bowl_0,aria01_214-1,1585.72
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,wooden spatula_0,aria01_214-1,29789.18
+cooking,f1bdf9f3-4f65-4c70-b8ba-b3d4607c0cff,wooden spatula_0,gp02,14031.5
+health,04d87074-8116-4f09-b6e5-10670c9e772d,CPR dummy,aria02_214-1,9495.78
+health,04d87074-8116-4f09-b6e5-10670c9e772d,CPR dummy,cam01,420.21
+health,0827f0fc-4f33-4a6e-b7b3-89165585d79f,CPR dummy,aria02_214-1,10922.77
+health,0827f0fc-4f33-4a6e-b7b3-89165585d79f,CPR dummy,cam01,241.46
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 antigen test package_0,aria02_214-1,10100.19
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 antigen test package_0,cam01,3072.38
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 test card pack_0,aria02_214-1,10965.12
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 test card pack_0,cam01,6042.72
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 test nasal swab pack_0,aria02_214-1,8977.06
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 test nasal swab pack_0,cam01,3908.64
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 test nasal swab_0,aria02_214-1,4195.27
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 test nasal swab_0,cam01,9822.55
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 test solution tube_0,aria02_214-1,9123.09
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,covid-19 test solution tube_0,cam01,6623.09
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,white table_0,aria02_214-1,7065.79
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,yellow scissor_0,aria02_214-1,9324.8
+health,40dc3bbc-c8c4-4e6d-a2a5-32a357f3c291,yellow scissor_0,cam01,1596.71
+health,45cb84f9-a925-43f8-aa7e-0fba6e23a86e,Covid-19 Test Pack_0,aria01_214-1,9436.36
+health,45cb84f9-a925-43f8-aa7e-0fba6e23a86e,Covid-19 Test Pack_0,cam01,5592.71
+health,45cb84f9-a925-43f8-aa7e-0fba6e23a86e,Disposable swab package_0,aria01_214-1,4072.39
+health,45cb84f9-a925-43f8-aa7e-0fba6e23a86e,Disposable swab package_0,cam01,6558.43
+health,45cb84f9-a925-43f8-aa7e-0fba6e23a86e,Solution Tube Package_0,aria01_214-1,6649.87
+health,45cb84f9-a925-43f8-aa7e-0fba6e23a86e,Solution Tube Package_0,cam01,358.87
+health,45cb84f9-a925-43f8-aa7e-0fba6e23a86e,Test Device_0,aria01_214-1,3360.0
+health,45cb84f9-a925-43f8-aa7e-0fba6e23a86e,Test Device_0,cam01,2094.42
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,Flowflex rapid antigen test kit_0,aria01_214-1,30197.17
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,Flowflex rapid antigen test kit_0,cam03,1606.88
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,Flowflex test kit instruction manual_0,aria01_214-1,14405.87
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,Flowflex test kit instruction manual_0,cam01,2043.9
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,Flowflex test kit instruction manual_1,aria01_214-1,26605.67
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,Flowflex test kit instruction manual_1,cam03,2666.48
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,digital timer_0,aria01_214-1,28910.37
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,digital timer_0,cam03,1355.88
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,sterile swab package_0,aria01_214-1,27990.42
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,sterile swab package_0,cam03,6877.07
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,test cassette package_0,aria01_214-1,9190.85
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,test cassette package_0,cam01,2887.99
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,test cassette package_1,aria01_214-1,760.18
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,test cassette package_1,cam03,416.86
+health,6d1847fe-d2d2-4a11-80fb-1cf5ff6d965a,test cassette package_2,aria01_214-1,353.45
+health,77b1cae6-7e57-47f9-83ae-c68243792d36,CPR dummy,aria01_214-1,11945.54
+health,77b1cae6-7e57-47f9-83ae-c68243792d36,CPR dummy,cam01,1145.8
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,disposable sterile swab pack_0,aria02_214-1,10990.99
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,disposable sterile swab pack_0,cam03,555.26
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,disposable sterile swab pack_1,aria02_214-1,10379.92
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,disposable sterile swab pack_1,cam03,2805.48
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,disposable sterile swab pack_2,aria02_214-1,11381.14
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,disposable sterile swab pack_2,cam03,406.45
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,disposable sterile swab_0,aria02_214-1,3426.01
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,disposable sterile swab_0,cam04,3624.52
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,rapid antigen test kit manual_0,aria02_214-1,11277.06
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,rapid antigen test kit manual_0,cam03,2254.3
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,rapid antigen test kit_0,aria02_214-1,12920.1
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,rapid antigen test kit_0,cam03,2298.32
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,solution tube pack_0,aria02_214-1,11336.51
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,solution tube pack_0,cam03,1807.84
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette pack_0,aria02_214-1,10733.75
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette pack_0,cam03,462.39
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette pack_1,aria02_214-1,10599.35
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette pack_1,cam03,709.29
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette pack_2,aria02_214-1,10361.88
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette pack_2,cam03,718.4
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette pack_3,aria02_214-1,10307.98
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette pack_3,cam03,880.81
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette_0,aria02_214-1,3315.2
+health,8e3c3065-f05d-4ce2-af8e-f6bbd58d4383,test cassette_0,cam03,755.21
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,buffer tube with package_0,aria01_214-1,3061.07
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,buffer tube with package_0,cam03,946.39
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,covid-19 rapid antigen test kit _0,aria01_214-1,832.63
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,instruction manual_0,aria01_214-1,14715.5
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,instruction manual_0,cam02,3302.13
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,sterile swab _0,aria01_214-1,6445.55
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,sterile swab _0,cam02,3244.23
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,sterile swab pack_0,aria01_214-1,23707.89
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,sterile swab pack_0,cam02,5290.13
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,test cassette _0,aria01_214-1,1557.42
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,test cassette _0,cam02,232.38
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,test cassette pack_0,aria01_214-1,22467.97
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,test cassette pack_0,cam02,2065.88
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,test cassette pack_1,aria01_214-1,17568.93
+health,c4c0e97d-135b-4dec-b736-e184442bd42e,test cassette pack_1,cam02,2076.13
+health,dc1600e9-dd79-4700-882a-9f53cdd29d20,CPR dummy,aria01_214-1,15705.29
+health,dc1600e9-dd79-4700-882a-9f53cdd29d20,CPR dummy,cam01,1253.04
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,covid 19 test package_0,aria01_214-1,507.51
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,covid 19 test package_0,cam02,2783.15
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,extraction buffer tube package_0,aria01_214-1,24398.26
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,extraction buffer tube package_0,cam02,2027.6
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,extraction buffer tube_0,aria01_214-1,20626.73
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,extraction buffer tube_0,cam03,5303.03
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,instruction manual_0,aria01_214-1,18345.94
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,sterile swab package pack_0,aria01_214-1,15491.74
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,sterile swab package pack_0,cam03,1439.84
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,sterile swab package_0,aria01_214-1,5383.21
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,sterile swab package_0,cam03,1299.52
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,test device package_0,aria01_214-1,5240.22
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,test device package_0,cam03,1295.0
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,test device_0,aria01_214-1,9563.73
+health,e469c7e2-bcbd-4cf6-97d7-3f3562e5c1a9,test device_0,cam03,376.5
+music,2bb3f8db-a6b0-49b8-8c0f-686774acf00a,sheet music,aria01_214-1,7267.32
+music,2bb3f8db-a6b0-49b8-8c0f-686774acf00a,sheet music,gp02,39.99
+music,2bb3f8db-a6b0-49b8-8c0f-686774acf00a,violin,gp03,879.14
+music,2bb3f8db-a6b0-49b8-8c0f-686774acf00a,violin bow,gp01,3335.19
+music,2f6dc326-3689-4190-a8f8-674a5e6d688b,piano,aria01_214-1,5364.67
+music,2f6dc326-3689-4190-a8f8-674a5e6d688b,piano,gp01,763.32
+music,2fe390a8-1506-4420-9008-74199f92797b,guitar,aria01_214-1,27695.53
+music,2fe390a8-1506-4420-9008-74199f92797b,guitar,gp03,244.71
+music,2fe390a8-1506-4420-9008-74199f92797b,sheet music,aria01_214-1,32681.89
+music,2fe390a8-1506-4420-9008-74199f92797b,sheet music,gp03,6.3
+music,2fe390a8-1506-4420-9008-74199f92797b,sheet music stand,gp01,269.73
+music,464c4a51-a74f-4ff4-9ece-8d38b9c22bfc,guitar,aria01_214-1,4593.83
+music,464c4a51-a74f-4ff4-9ece-8d38b9c22bfc,guitar,gp04,403.08
+music,464c4a51-a74f-4ff4-9ece-8d38b9c22bfc,sheet music,aria01_214-1,8802.84
+music,464c4a51-a74f-4ff4-9ece-8d38b9c22bfc,sheet music,gp04,119.38
+music,989b038e-d46c-4433-b968-87b58a4c7037,piano,aria01_214-1,6056.01
+music,989b038e-d46c-4433-b968-87b58a4c7037,piano,gp04,353.5
+music,b0844d48-90da-4073-9e03-fb8aef700f40,sheet music,aria01_214-1,47643.01
+music,b0844d48-90da-4073-9e03-fb8aef700f40,sheet music,gp03,388.23
+music,b0844d48-90da-4073-9e03-fb8aef700f40,sheet music stand,gp03,235.8
+music,b0844d48-90da-4073-9e03-fb8aef700f40,violin,gp01,6289.03
+music,b0844d48-90da-4073-9e03-fb8aef700f40,violin bow,gp03,11860.86
+music,bf74fe65-12af-4d4e-a7a6-7885c854ae49,sheet music,aria01_214-1,74772.73
+music,bf74fe65-12af-4d4e-a7a6-7885c854ae49,sheet music,gp01,221.32
+music,bf74fe65-12af-4d4e-a7a6-7885c854ae49,sheet music stand,gp01,499.52
+music,bf74fe65-12af-4d4e-a7a6-7885c854ae49,violin,gp03,8188.95
+music,bf74fe65-12af-4d4e-a7a6-7885c854ae49,violin bow,gp02,22909.92
+music,c47b2e19-8a8f-4594-9144-8b7be780ab74,guitar,gp01,3173.9
+music,c47b2e19-8a8f-4594-9144-8b7be780ab74,sheet music,aria01_214-1,78824.89
+music,c47b2e19-8a8f-4594-9144-8b7be780ab74,sheet music,gp04,15.94
+music,c47b2e19-8a8f-4594-9144-8b7be780ab74,sheet music stand,gp03,9.12
+music,d2218738-2af2-4585-bd1c-af8ad10d7827,guitar,aria01_214-1,27308.01
+music,d2218738-2af2-4585-bd1c-af8ad10d7827,guitar,gp01,615.69
+music,d2218738-2af2-4585-bd1c-af8ad10d7827,sheet music,aria01_214-1,29434.05
+music,d2218738-2af2-4585-bd1c-af8ad10d7827,sheet music,gp04,81.58
+music,d2218738-2af2-4585-bd1c-af8ad10d7827,sheet music stand,gp04,23.26
+music,e3cb859e-73ca-4cef-8c08-296bafdb43cd,guitar,aria01_214-1,7261.48
+music,e3cb859e-73ca-4cef-8c08-296bafdb43cd,guitar,gp01,275.75
+music,e3cb859e-73ca-4cef-8c08-296bafdb43cd,sheet music,aria01_214-1,6378.51
+music,e3cb859e-73ca-4cef-8c08-296bafdb43cd,sheet music,gp01,65.15
+music,e3cb859e-73ca-4cef-8c08-296bafdb43cd,sheet music stand,gp01,112.41
