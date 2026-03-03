@@ -1,0 +1,9 @@
+metric,value
+direction,exo-ego
+num_takes,50
+num_frames_evaluated,20836
+num_frames_with_gt_obj,20832
+existence_balanced_acc,0.6078629032258065
+mean_iou,0.6619963754140642
+mean_location_score,0.023327911584045517
+mean_shape_acc,0.7905399551904787
