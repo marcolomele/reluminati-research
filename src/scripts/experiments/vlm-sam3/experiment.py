@@ -950,6 +950,13 @@ def main():
 
     df = pd.DataFrame(all_rows)
 
+    # Coerce metrics to numeric — resume logic loads old rows as dtype=str,
+    # mixing with float rows from the current run; without this the final
+    # .mean() crashes with "Could not convert string to numeric".
+    for _c in ["iou", "ba", "ca", "le"]:
+        if _c in df.columns:
+            df[_c] = pd.to_numeric(df[_c], errors="coerce")
+
     # Final write — same file used for checkpointing (results_{JOB_ID}.csv)
     df.to_csv(checkpoint_path, index=False)
     logger.info("Final results → %s", checkpoint_path)
