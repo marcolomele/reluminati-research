@@ -578,6 +578,84 @@ def sam3_segment(model, proc, img_path, text_prompt, device):
     )[0]
 
 
+# ─── BBox localization helpers ───────────────────────────────────────────────
+
+
+def parse_vlm_bbox(text, img_w, img_h):
+    """
+    Extract (x1, y1, x2, y2) pixel coordinates from a VLM bbox response.
+
+    Handles formats produced by Qwen3-VL:
+      "123,456,789,1012"
+      "[123, 456, 789, 1012]"
+      "x1=123, y1=456, x2=789, y2=1012"
+      Normalised floats in [0,1] are scaled to pixel space automatically.
+
+    Returns None when the object is not visible or the output cannot be parsed.
+    """
+    import re as _re
+
+    if not text:
+        return None
+    low = text.lower()
+    if "not_visible" in low or "not visible" in low or "not found" in low:
+        return None
+
+    nums = _re.findall(r"\d+(?:\.\d+)?", text)
+    if len(nums) < 4:
+        return None
+
+    try:
+        vals = [float(n) for n in nums[:4]]
+    except ValueError:
+        return None
+
+    x1, y1, x2, y2 = vals
+
+    # Normalised [0,1] → pixel coordinates
+    if max(vals) <= 1.0:
+        x1, x2 = x1 * img_w, x2 * img_w
+        y1, y2 = y1 * img_h, y2 * img_h
+
+    # Clamp to image bounds
+    x1 = max(0.0, min(float(img_w - 1), x1))
+    y1 = max(0.0, min(float(img_h - 1), y1))
+    x2 = max(0.0, min(float(img_w), x2))
+    y2 = max(0.0, min(float(img_h), y2))
+
+    if x2 <= x1 or y2 <= y1:
+        return None
+
+    return (x1, y1, x2, y2)
+
+
+def sam3_segment_box(model, proc, img_path, box_xyxy, device):
+    """
+    Run SAM3 segmentation prompted by a bounding box instead of text.
+
+    box_xyxy: (x1, y1, x2, y2) in pixel coordinates of img_path.
+    The box bypasses the 28-token text encoder limit entirely.
+    """
+    x1, y1, x2, y2 = box_xyxy
+    img = Image.open(img_path).convert("RGB")
+    # Sam3Processor expects input_boxes as [[[x1, y1, x2, y2]]] (batch × n_boxes × 4)
+    inputs = proc(
+        images=img,
+        input_boxes=[[[x1, y1, x2, y2]]],
+        return_tensors="pt",
+    ).to(device)
+
+    with torch.no_grad():
+        out = model(**inputs)
+
+    return proc.post_process_instance_segmentation(
+        out,
+        threshold=0.5,
+        mask_threshold=0.5,
+        target_sizes=inputs.get("original_sizes").tolist(),
+    )[0]
+
+
 # ─── Metrics ─────────────────────────────────────────────────────────────────
 
 
@@ -796,7 +874,20 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache, vlm_clie
             if video_window > 0:
                 cache_entry["window_frame_count"] = frame_count + 1
 
-        sam_out = sam3_segment(sam_m, sam_p, dst_rgb, caption, dev)
+        vlm_output_type = exp_cfg.get("vlm_output_type", "text")
+
+        if vlm_output_type == "bbox":
+            dst_img_size = Image.open(dst_rgb).size  # (w, h)
+            box = parse_vlm_bbox(caption, dst_img_size[0], dst_img_size[1])
+            if box is None:
+                sam_out = {"masks": []}  # VLM failed to localise — same as missing
+                vlm_bbox_str = None
+            else:
+                sam_out = sam3_segment_box(sam_m, sam_p, dst_rgb, box, dev)
+                vlm_bbox_str = ",".join(f"{v:.1f}" for v in box)
+        else:
+            sam_out = sam3_segment(sam_m, sam_p, dst_rgb, caption, dev)
+            vlm_bbox_str = None
 
         h_s, w_s = (
             sam_out["masks"][0].shape[-2:] if len(sam_out["masks"]) > 0 else dst_gt.shape
@@ -819,6 +910,7 @@ def process_pair(meta, cfg, vlm, sam_m, sam_p, dev, ann, caption_cache, vlm_clie
             "experiment": exp_id,
             "vlm_model": exp_model,
             "vlm_output": caption,
+            "vlm_bbox": vlm_bbox_str,
             "vlm_reprompted": reprompt,
             "vlm_reprompt_reason": reprompt_reason,
             "vlm_num_frames": exp_frames,
