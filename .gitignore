@@ -1,4 +1,5 @@
 local_misc/
+src/scripts/experiments/vlm-sam3/config.json
 
 keys/
 .cursor/
