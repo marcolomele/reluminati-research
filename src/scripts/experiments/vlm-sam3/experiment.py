@@ -195,6 +195,24 @@ def get_mask(ann, obj, cam, frame):
 
 # ─── Image Helpers ───────────────────────────────────────────────────────────
 
+def _align_mask(mask_np, img_w, img_h):
+    """Resize mask to match (img_w, img_h) if needed. Returns bool array."""
+    if mask_np.shape[0] != img_h or mask_np.shape[1] != img_w:
+        return cv2.resize(
+            mask_np.astype(np.uint8), (img_w, img_h), interpolation=cv2.INTER_NEAREST
+        ).astype(bool)
+    return mask_np
+
+
+def mask_bbox(mask_np):
+    """Return (rmin, rmax, cmin, cmax) tight bounding box, or None if mask is empty."""
+    rows = np.any(mask_np, axis=1)
+    cols = np.any(mask_np, axis=0)
+    if not rows.any():
+        return None
+    rmin, rmax = int(np.where(rows)[0][[0, -1]][0]), int(np.where(rows)[0][[0, -1]][1])
+    cmin, cmax = int(np.where(cols)[0][[0, -1]][0]), int(np.where(cols)[0][[0, -1]][1])
+    return rmin, rmax, cmin, cmax
 
 def create_overlay(img_path, mask_np, alpha=0.3):
     """Return a PIL Image with a red overlay on the masked region."""
@@ -237,6 +255,20 @@ def create_bounding_box(img_path, mask_np, color=(255, 0, 0), thickness=2):
     cv2.rectangle(arr, (x_min, y_min), (x_max, y_max), color, thickness)
     return Image.fromarray(arr)
 
+def create_crop_image(img_path, mask_np, padding=10):
+    """Return a PIL Image cropped to the bounding box of the mask (+ padding)."""
+    img = Image.open(img_path).convert("RGB")
+    w, h = img.size
+    aligned = _align_mask(mask_np, w, h)
+    bbox = mask_bbox(aligned)
+    if bbox is None:
+        return img
+    rmin, rmax, cmin, cmax = bbox
+    left = max(0, cmin - padding)
+    upper = max(0, rmin - padding)
+    right = min(w, cmax + padding)
+    lower = min(h, rmax + padding)
+    return img.crop((left, upper, right, lower))
 
 def pil_to_b64(pil_img, fmt="JPEG"):
     """Base64-encode a PIL Image."""
@@ -249,6 +281,80 @@ def file_to_b64(path):
     """Base64-encode an image file on disk."""
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+
+def parse_vlm_bbox(text, img_w, img_h):
+    """
+    Extract (x1, y1, x2, y2) pixel coordinates from a VLM bbox response.
+
+    Handles formats produced by Qwen3-VL:
+      "123,456,789,1012"
+      "[123, 456, 789, 1012]"
+      "x1=123, y1=456, x2=789, y2=1012"
+      Normalised floats in [0,1] are scaled to pixel space automatically.
+
+    Returns None when the object is not visible or the output cannot be parsed.
+    """
+    import re as _re
+
+    if not text:
+        return None
+    low = text.lower()
+    if "not_visible" in low or "not visible" in low or "not found" in low:
+        return None
+
+    nums = _re.findall(r"\d+(?:\.\d+)?", text)
+    if len(nums) < 4:
+        return None
+
+    try:
+        vals = [float(n) for n in nums[:4]]
+    except ValueError:
+        return None
+
+    x1, y1, x2, y2 = vals
+
+    # Normalised [0,1] → pixel coordinates
+    if max(vals) <= 1.0:
+        x1, x2 = x1 * img_w, x2 * img_w
+        y1, y2 = y1 * img_h, y2 * img_h
+
+    # Clamp to image bounds
+    x1 = max(0.0, min(float(img_w - 1), x1))
+    y1 = max(0.0, min(float(img_h - 1), y1))
+    x2 = max(0.0, min(float(img_w), x2))
+    y2 = max(0.0, min(float(img_h), y2))
+
+    if x2 <= x1 or y2 <= y1:
+        return None
+
+    return (x1, y1, x2, y2)
+
+
+def sam3_segment_box(model, proc, img_path, box_xyxy, device):
+    """
+    Run SAM3 segmentation prompted by a bounding box instead of text.
+
+    box_xyxy: (x1, y1, x2, y2) in pixel coordinates of img_path.
+    The box bypasses the 28-token text encoder limit entirely.
+    """
+    x1, y1, x2, y2 = box_xyxy
+    img = Image.open(img_path).convert("RGB")
+    # Sam3Processor expects input_boxes as [[[x1, y1, x2, y2]]] (batch × n_boxes × 4)
+    inputs = proc(
+        images=img,
+        input_boxes=[[[x1, y1, x2, y2]]],
+        return_tensors="pt",
+    ).to(device)
+
+    with torch.no_grad():
+        out = model(**inputs)
+
+    return proc.post_process_instance_segmentation(
+        out,
+        threshold=0.5,
+        mask_threshold=0.5,
+        target_sizes=inputs.get("original_sizes").tolist(),
+    )[0]
 
 
 # ─── VLM ─────────────────────────────────────────────────────────────────────
@@ -386,7 +492,6 @@ def sam3_segment(model, proc, img_path, text_prompt, device):
         mask_threshold=0.5,
         target_sizes=inputs.get("original_sizes").tolist(),
     )[0]
-
 
 # ─── Metrics ─────────────────────────────────────────────────────────────────
 
