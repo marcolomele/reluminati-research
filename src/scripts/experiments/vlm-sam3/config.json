@@ -23,8 +23,9 @@
     "prompt-exp-b-mask-bbox": "First image = source image with red bounding box around selected object. Second image = same scene with red mask overlay on the object. Use both images to identify the object. The bounding box shows location, the mask shows exact shape. Describe the object's true color. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text.",
     "prompt-exp-c-mask-bbox": "First image = source image with red bounding box around selected object. Second image = source with red mask overlay on the object. Third image = destination from different viewpoint. Use first two images to identify the selected object (bounding box shows location, mask shows exact shape). Locate the same object in the third image. Do NOT say red unless the object is actually red. Answer with: {color} {object_name}. No extra text.",
 
-    "split": "train",
+    "split": "baseline",
     "direction": "ego-exo",
-    "subset-run-percentage": 0.01,
-    "subset-seed": 42
+
+    "take-level-sample-percentage": 0.1,
+    "seed": 42
 }

@@ -103,16 +103,36 @@ def load_pairs(root_dir, split, direction):
     return pairs
 
 
-def subsample_pairs(pairs, pct, seed):
-    """Randomly subsample pairs by percentage (0-1). Returns all if pct >= 1."""
+# def subsample_pairs(pairs, pct, seed):
+#     """Randomly subsample pairs by percentage (0-1). Returns all if pct >= 1."""
+#     if pct >= 1.0:
+#         return pairs
+#     random.seed(seed)
+#     n = max(1, int(len(pairs) * pct))
+#     sampled = random.sample(pairs, n)
+#     logger.info("Subsampled %d / %d pairs (%.0f%%, seed=%d)", n, len(pairs), pct * 100, seed)
+#     return sampled
+
+def sample_take_level(pairs, pct, seed):
+    """Randomly subsample pairs by take_uid. Returns all if pct >= 1."""
     if pct >= 1.0:
         return pairs
+    
+    # Extract unique take_uids
+    take_uids = list(set([Path(p[0]).parts[1] for p in pairs]))
+    
+    # Subsample take_uids
     random.seed(seed)
-    n = max(1, int(len(pairs) * pct))
-    sampled = random.sample(pairs, n)
-    logger.info("Subsampled %d / %d pairs (%.0f%%, seed=%d)", n, len(pairs), pct * 100, seed)
-    return sampled
-
+    n_takes = max(1, int(len(take_uids) * pct))
+    sampled_uids = random.sample(take_uids, n_takes)
+    
+    # Filter pairs based on sampled take_uids
+    filtered_pairs = [p for p in pairs if Path(p[0]).parts[1] in sampled_uids]
+    logger.info(
+        "Subsampled %d / %d take_uids (%.0f%%, seed=%d) resulting in %d / %d pairs",
+        n_takes, len(take_uids), pct * 100, seed, len(filtered_pairs), len(pairs)
+    )
+    return filtered_pairs
 
 def parse_pair(pair, root_dir):
     """
@@ -663,7 +683,9 @@ def main():
     direction = cfg["direction"]
 
     pairs = load_pairs(root, split, direction)
-    pairs = subsample_pairs(pairs, cfg["subset-run-percentage"], cfg["subset-seed"])
+    pairs = sample_take_level(
+        pairs, cfg["take-level-sample-percentage"], cfg["seed"]
+    )
 
     vlm = init_vlm(cfg)
     sam_m, sam_p, dev = init_sam3(cfg)
