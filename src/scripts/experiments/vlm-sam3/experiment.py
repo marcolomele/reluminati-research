@@ -620,11 +620,10 @@ def parse_vlm_bbox(text, img_w, img_h):
         # Normalised [0,1] → pixel
         x1, x2 = x1 * img_w, x2 * img_w
         y1, y2 = y1 * img_h, y2 * img_h
-    elif max_val > max(img_w, img_h):
-        # Qwen-VL 1000-scale → pixel
+    else:
+        # Qwen3-VL always outputs in 0-1000 normalised space → pixel
         x1, x2 = x1 / 1000.0 * img_w, x2 / 1000.0 * img_w
         y1, y2 = y1 / 1000.0 * img_h, y2 / 1000.0 * img_h
-    # else: already in pixel space, use as-is
 
     # Clamp to image bounds
     x1 = max(0.0, min(float(img_w - 1), x1))
