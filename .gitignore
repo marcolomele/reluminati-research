@@ -1,7 +1,8 @@
 local_misc/
 src/scripts/experiments/vlm-sam3/config.json
-
+*.env
 keys/
+.sam3_venv
 .cursor/
 # Byte-compiled / optimized / DLL files
 __pycache__/
