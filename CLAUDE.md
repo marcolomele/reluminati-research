@@ -89,42 +89,67 @@ reluminati-research/
 | 460850 | old/manual | COMPLETED | 253 pairs, old code |
 | 462563 | config.json (10 exps) | COMPLETED | 1100 pairs, 11000 rows |
 | 463119 | config.json (4 exps: C/cot/ctx/ctx-cot) | FAILED at 75% | Crash at .mean() due to resume dtype bug |
-| 465254 | config.json (4 exps resume) | PENDING | Finishes remaining 477 pairs |
-| 465270 | config.box.json (2 exps) | PENDING | EXP-C-box smoke test (19 pairs) |
-| 465278 | config.multiframe.json (4 exps) | PENDING | EXP-F-mf1/3/5/10 smoke test (19 pairs) |
+| 465254 | config.json (4 exps resume) | COMPLETED | Finishes remaining 477 pairs → 2493 total per exp |
+| 465270 | config.box.json | CANCELLED | Broken 1000-scale bbox bug, results discarded |
+| 465278 | config.multiframe.json | CANCELLED | Contaminated with bad box rows, results discarded |
+| 465289/93/94 | config.box.json | CANCELLED | Still broken 1000-scale, results discarded |
+| 465301-303 | config.json / box / mf | CANCELLED | Monitor false-positive killed at pair 371 / 126 |
+| **465388** | config.box.json | **COMPLETED** | EXP-C-box/cot, 1433 pairs, 3h25m |
+| **465389** | config.multiframe.json | **COMPLETED** | EXP-F-mf1/3/5/10, 1433 pairs, 2h02m |
+
+### Final Results (all jobs deduplicated, 2026-03-09)
+
+| Experiment | N | iou>0% | mean IoU (pos) | iou>0.5% | iou>0.75% |
+|---|---|---|---|---|---|
+| **LM-EEC baseline (exo→ego)** | — | — | **0.660** | — | — |
+| EXP-C (cloud, text) | 2493 | 31.7% | 0.686 | 78.1% | 66.7% |
+| EXP-C-cot (instruct, text) | 2493 | 41.1% | 0.580 | 65.0% | 55.6% |
+| EXP-C-ctx (cloud, ctx) | 1433* | 18.6% | 0.617 | 71.5% | 61.0% |
+| EXP-C-ctx-cot (instruct, ctx) | 1433* | 24.8% | 0.571 | 64.8% | 54.6% |
+| **EXP-C-box (cloud, bbox)** | 1433* | **49.4%** | 0.357 | 35.6% | 21.3% |
+| EXP-C-box-cot (instruct, bbox) | 1433* | 30.4% | 0.320 | 31.7% | 18.3% |
+| EXP-F-mf1 (1 frame) | 1433* | 33.1% | 0.527 | 58.6% | 49.4% |
+| EXP-F-mf3 (3 frames) | 1433* | 23.4% | 0.620 | 69.9% | 57.9% |
+| EXP-F-mf5 (5 frames) | 2493 | 17.6% | 0.589 | 66.4% | 56.8% |
+| EXP-F-mf10 (10 frames) | 1433* | 21.7% | 0.572 | 65.0% | 55.3% |
+
+*partial (~75% of full 1910 pairs)
 
 ### Current Experiment IDs (config.json)
 
 | ID | Model | Images | Prompt | Notes |
 |----|-------|--------|--------|-------|
-| EXP-C | 235b-cloud | src_clean, src_overlay, dst | clean-overlay-dst | 30.9% success, 25.5% missing |
-| EXP-C-cot | 235b-instruct | src_clean, src_overlay, dst | clean-overlay-dst | **44.4% success**, 0% missing — BEST |
-| EXP-C-ctx | 235b-cloud | src_clean, src_overlay, dst | neighbor-context | 17.6% — WORSE (SAM3 token truncation) |
-| EXP-C-ctx-cot | 235b-instruct | src_clean, src_overlay, dst | neighbor-context-cot | 24.1% — worse than cot |
-| EXP-C-box | 235b-cloud | src_clean, src_overlay, dst | localize-bbox | PENDING (new!) |
-| EXP-C-box-cot | 235b-instruct | src_clean, src_overlay, dst | localize-bbox-cot | PENDING (new!) |
+| EXP-C | 235b-cloud | src_clean, src_overlay, dst | clean-overlay-dst | 31.7% success |
+| EXP-C-cot | 235b-instruct | src_clean, src_overlay, dst | clean-overlay-dst | **41.1% success**, 0% missing — best text |
+| EXP-C-ctx | 235b-cloud | src_clean, src_overlay, dst | neighbor-context | 18.6% — WORSE (SAM3 token truncation) |
+| EXP-C-ctx-cot | 235b-instruct | src_clean, src_overlay, dst | neighbor-context-cot | 24.8% — worse than cot |
+| EXP-C-box | 235b-cloud | src_clean, src_overlay, dst | localize-bbox | **49.4% success — highest localization rate!** |
+| EXP-C-box-cot | 235b-instruct | src_clean, src_overlay, dst | localize-bbox-cot | 30.4% — CoT hurts bbox |
 
 ### Multiframe Ablation (config.multiframe.json)
 
-| ID | num_frames | Model | Notes |
-|----|-----------|-------|-------|
-| EXP-F-mf1 | 1 | 235b-instruct | baseline |
-| EXP-F-mf3 | 3 | 235b-instruct | |
-| EXP-F-mf5 | 5 | 235b-instruct | fix applied |
-| EXP-F-mf10 | 10 | 235b-instruct | |
+| ID | num_frames | iou>0% | mean_pos | Notes |
+|----|-----------|--------|----------|-------|
+| EXP-F-mf1 | 1 | 33.1% | 0.527 | best localization |
+| EXP-F-mf3 | 3 | 23.4% | **0.620** | best quality when found |
+| EXP-F-mf5 | 5 | 17.6% | 0.589 | |
+| EXP-F-mf10 | 10 | 21.7% | 0.572 | |
+
+**Surprise**: fewer frames = better localization. More context images confuse the VLM.
 
 ---
 
 ## Key Findings So Far
 
-1. **EXP-C-cot is best**: 44.4% success, 0% missing. Instruct model (512 tokens) beats cloud (64 tokens).
-2. **When VLM works, SAM3 works**: IoU=0.718 mean on success cases, 83.4% IoU>0.5 — **beats LM-EEC baseline**!
-3. **Main failure mode**: 56% of pairs fail to localize correctly (VLM outputs bad/empty description → SAM3 fails)
-4. **num_predict matters**: 32 tokens → 20-25% missing VLM outputs; 512 tokens → 0% missing
-5. **Neighbor context hurts**: -13pp vs EXP-C (more tokens → SAM3 truncation kills description quality)
-6. **SAM3 hard 28-token limit**: max_position_embeddings=32, ~28 usable tokens. Long CoT outputs get truncated.
-7. **EXP-C-box hypothesis**: VLM outputs x1,y1,x2,y2 → SAM3 box prompt (bypasses token limit entirely)
-8. **Temporal fix**: multiframe sample_source_frames used linspace across whole video (wrong) → now picks N preceding frames before current_frame
+1. **EXP-C-box has highest localization (49.4%)**: VLM→bbox→SAM3 geometry prompt finds objects more often than text approach. But IoU quality is lower (0.357 vs 0.686) — SAM3 box prompts are less precise than text prompts when text works.
+2. **EXP-C (text, plain) is highest quality when it works**: mean IoU=0.686 on success, 78.1% have IoU>0.5 — **beats LM-EEC (0.660)**!
+3. **Main failure mode is VLM localization**: 50-68% of pairs fail because VLM can't describe/find the object, not because SAM3 segments badly.
+4. **CoT hurts bbox**: EXP-C-box-cot (30.4%) << EXP-C-box (49.4%). Reasoning causes second-guessing of coordinates.
+5. **Neighbor context hurts**: -13pp vs EXP-C. More tokens → SAM3 truncation kills description quality.
+6. **Multiframe: 1 frame best for localization, 3 frames best for quality**: More images confuse VLM localization. When 3 frames do succeed, mean IoU=0.620 (best across mf ablation).
+7. **SAM3 hard 28-token limit**: max_position_embeddings=32, ~28 usable tokens. Long CoT outputs get truncated.
+8. **Per-scenario EXP-C-box**: Music 96.9% (piano/guitar easy), Basketball 71.2%, Bike 57.6%, Health 46.3%, Cooking 44.7%.
+9. **Qwen3-VL always uses 0-1000 space**: bbox coordinates MUST be divided by 1000 and scaled by img dimension. Critical bug fixed in commit ece420a.
 
 ---
 
@@ -209,10 +234,10 @@ API keys live **only** in local `config.json` (skip-worktree, never committed).
 
 ## TODO / Next Steps
 
-- [ ] Analyze EXP-C-box results (job 465270) — does bbox approach beat 44.4%?
-- [ ] Analyze EXP-F multiframe results (job 465278) — sweet spot for frame count?
-- [ ] After smoke tests OK, run full experiment (set `subset-run-percentage: 1.0`)
-- [ ] Fix EXP-C num_predict: 64→128 to reduce 25.5% missing
+- [ ] Run EXP-C-box / EXP-C-cot on full 1910 pairs (current runs cover ~1433 = 75%)
+- [ ] Fix EXP-C num_predict: 64→128 to reduce 25.5% missing VLM outputs for cloud model
+- [ ] Investigate WHY VLM fails 50-68% of pairs (qualitative error analysis)
+- [ ] Try hybrid: EXP-C-box bbox → refine with SAM3 text prompt around bbox region
 - [ ] Download high-res EgoExo4D images for local model testing
 - [ ] Add results to Google Sheet (export_to_gsheets.py)
-- [ ] Remove Filippo's API keys from any committed files
+- [ ] Run `notebooks/results_analysis_465388_465389.ipynb` for team visualization
